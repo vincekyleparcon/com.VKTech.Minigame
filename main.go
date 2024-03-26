@@ -29,4 +29,14 @@ func Init(api sdkplugin.PluginApi) {
 	}
 	// register portal route
 	api.Http().VueRouter().RegisterPortalRoutes(portalRoute)
+
+	api.Http().VueRouter().PortalItemsFunc(func(r *http.Request) []sdkhttp.VuePortalItem {
+		portalItem := sdkhttp.VuePortalItem{
+			Label:       "Welcome",
+			IconPath:    "icons/welcome.png",
+			RouteName:   "portal.welcome",
+			RouteParams: map[string]string{"name": "Jhon"},
+		}
+		return []sdkhttp.VuePortalItem{portalItem}
+	})
 }
