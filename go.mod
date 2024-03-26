@@ -1,3 +1,3 @@
-module github.com/your-account/my-plugin-XVlBzgba
+module github.com/vincekyleparcon/com.VKTech.Minigame
 
 go 1.19
