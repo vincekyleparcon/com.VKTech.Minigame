@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	sdkhttp "github.com/flarehotspot/core/sdk/api/http"
@@ -41,4 +43,16 @@ func Init(api sdkplugin.PluginApi) {
 		}
 		return []sdkhttp.VuePortalItem{portalItem}
 	})
+
+	api.Http().HttpRouter().PluginRouter().Post("/payments/received", func(w http.ResponseWriter, r *http.Request) {
+		var data struct {
+			Amount int `json:"amount"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		fmt.Fprintf(w, "Payment Received: %d", data.Amount)
+
+	}).Name("payment.received")
 }
