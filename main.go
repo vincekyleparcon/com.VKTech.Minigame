@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	sdkhttp "github.com/flarehotspot/core/sdk/api/http"
-	sdkplugin "github.com/flarehotspot/core/sdk/api/plugin"
+	sdkconnmgr "github.com/flarehotspot/sdk/api/connmgr"
+	sdkhttp "github.com/flarehotspot/sdk/api/http"
+	sdkplugin "github.com/flarehotspot/sdk/api/plugin"
 )
 
 func main() {}
@@ -34,7 +35,7 @@ func Init(api sdkplugin.PluginApi) {
 	// register portal route
 	api.Http().VueRouter().RegisterPortalRoutes(portalRoute)
 
-	api.Http().VueRouter().PortalItemsFunc(func(r *http.Request) []sdkhttp.VuePortalItem {
+	api.Http().VueRouter().PortalItemsFunc(func(clnt sdkconnmgr.ClientDevice) []sdkhttp.VuePortalItem {
 		portalItem := sdkhttp.VuePortalItem{
 			Label: "Welcome",
 			//IconPath:    "icons/welcome.png",
