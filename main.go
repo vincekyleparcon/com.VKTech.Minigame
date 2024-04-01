@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	sdkconnmgr "github.com/flarehotspot/sdk/api/connmgr"
@@ -53,7 +52,10 @@ func Init(api sdkplugin.PluginApi) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Fprintf(w, "Payment Received: %d", data.Amount)
+
+		score := map[string]int{"score": data.Amount}
+		//fmt.Fprintf(w, "Payment Received: %d", data.Amount)
+		api.Http().VueResponse().Json(w, score, 200)
 
 	}).Name("payment.received")
 }
