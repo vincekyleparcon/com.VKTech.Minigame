@@ -1,50 +1,36 @@
 <template>
 
-  <canvas id="canvas1"></canvas>
+  <h1>Hello {{ first_name }} {{ last_name }}</h1> 
 
 </template>
 
 <style>
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-#canvas1 {
-  border: 5px solid black;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: blue;
-}
-  
+  /* styles here */
 </style>
 
 <script>
 define(function(){
-  return {
-    props: ['flareView'],
+  var component = {
     template: template,
     data: function() {
-      return {amount: 0};
+      return {
+        first_name: "Vince",
+        last_name: "Parcon"
+      };
     },
-    methods: {
-      submit: function() {
-        var self = this;
-        var formData = {amount: parseInt(self.amount)};
-
-        $flare.http.post('<% .Helpers.UrlForRoute "payment.received" %>', formData)
-          .then(function(response){
-            console.log(response);
-            self.flareView.data.score = response.score;
-          })
-          .catch(function(error){
-            console.log(error);
-          });
+    mounted: function(){
+      function Person(name){
+        this.name = name
       }
+
+      Person.prototype.greet = function (){
+        alert("Hello, my name is " + this.name)
+      }
+
+      var p = new Person("Kyle")
     }
   };
-});
 
+  return component;
+})
 </script>
