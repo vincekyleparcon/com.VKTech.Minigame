@@ -105,7 +105,40 @@
         }
 
         function Background(game) {
+          this.game = game;
+          this.image = document.getElementById('background');
+          this.image2 = document.getElementById('background2');
+          this.width = 2400;
+          this.height = this.game.baseHeight;
+          this.scaledWidth;
+          this.scaledHeight;
+          this.x;
+          this.x2
+        }
+        Background.prototype.update = function(){
+          this.x -= this.game.speed * 1.2;
+          if (this.x <= -this.scaledWidth) this.x = 0;
+          this.x2 -= this.game.speed * 0.75;
+          if (this.x2 <= -this.scaledWidth) this.x2 = 0;
+        }
+        Background.prototype.draw = function(){
 
+          this.game.ctx.drawImage(this.image2, this.x2, 0, this.scaledWidth, this.scaledHeight);
+          this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
+          if (this.game.canvas.width >= this.scaledWidth) {
+            this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth * 2 - 2, 0, this.scaledWidth, this.scaledHeight);
+          }
+          this.game.ctx.drawImage(this.image, this.x, 0, this.scaledWidth, this.scaledHeight);
+          this.game.ctx.drawImage(this.image, this.x + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
+          if (this.game.canvas.width >= this.scaledWidth) {
+            this.game.ctx.drawImage(this.image, this.x + this.scaledWidth * 2 - 2, 0, this.scaledWidth, this.scaledHeight);
+          }
+        }
+        Background.prototype.resize = function(){
+          this.scaledWidth = this.width * this.game.ratio;
+          this.scaledHeight = this.height * this.game.ratio;
+          this.x = 0;
+          this.x2 = 0;
         }
 
           const canvas = document.getElementById('canvas1');
