@@ -52,6 +52,7 @@
 
           this.canvas.addEventListener('mousedown', e => {
             this.player.flap();
+            console.log("mousedown");
           });
         }
         Game.prototype.render = function() {
@@ -180,12 +181,18 @@
           this.x = x;
           this.y = Math.random() * this.game.height - this.scaledHeight;
           this.speedY = Math.random() < 0.5 ? -1 : 1;
+          this.markedFordeletion = false;
         }
         Obstacle.prototype.update = function(){
           this.x -= this.game.speed * 1.5;
           this.y += this.speedY;
           if (this.y <= this.scaledHeight * -0.2 || this.y >= this.game.height - this.scaledHeight) {
             this.speedY *= -1;
+          }
+          if (this.isOffScreen()){
+            this.markedFordeletion = true;
+            this.game.obstacles = this.game.obstacles.filter(obstacle => !obstacle.markedFordeletion);
+            console.log(this.game.obstacles.length);
           }
         }
         Obstacle.prototype.draw = function () {
@@ -194,6 +201,9 @@
         Obstacle.prototype.resize = function () {
           this.scaledWidth = this.spriteWidth * this.game.ratio;
           this.scaledHeight = this.spriteHeight * this.game.ratio;
+        }
+        Obstacle.prototype.isOffScreen = function() {
+          return this.x < 0;
         }
 
 
