@@ -91,7 +91,6 @@
             this.obstacles.push(new Obstacle(this, firstX + i * obstacleSpacing));
           }
         }
-        }
 
         function Player(game) {
           this.game = game;
