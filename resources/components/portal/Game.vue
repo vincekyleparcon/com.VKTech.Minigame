@@ -1,6 +1,10 @@
 <template>
   <div>
     <canvas id="canvas1"></canvas>
+    <div class="assets">
+      <img id="background" src="">
+      <img id="background2" src="">
+    </div>
   </div>
 </template>
 
@@ -27,6 +31,7 @@
     var component = {
       template: template,
       mounted: function() {  
+
         function Game(canvas, context) {
           this.canvas = canvas;
           this.ctx = context;
@@ -107,7 +112,17 @@
           };
         }
 
-        function Background() {
+        function Background(game) {
+          this.game = game;
+          this.image = document.getElementById('background');
+        }
+        Background.prototype.update = function(){
+
+        }
+        Background.prototype.draw = function () {
+
+        }
+        Background.prototype.resize = function () {
 
         }
 
