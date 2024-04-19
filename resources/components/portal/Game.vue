@@ -41,7 +41,7 @@ define(function () {
         this.background = new Background(this);
         this.player = new Player(this);
         this.obstacles = [];
-        this.numberOfObstacles = 122;
+        this.numberOfObstacles = 1;
         this.gravity;
         this.speed;
         this.score = 0;
@@ -61,9 +61,11 @@ define(function () {
       }
       Game.prototype.render = function (deltaTime) {
 
-        console.log("DELTA: " + deltaTime);
-        this.timer += deltaTime;
-        console.log("TIMER: " + this.timer);
+        // console.log("DELTA: " + deltaTime);
+        // this.timer += deltaTime;
+        // console.log("TIMER: " + this.timer);
+
+        if (!this.gameOver) this.timer += deltaTime;
 
         this.background.update();
         this.background.draw();
@@ -80,7 +82,7 @@ define(function () {
       Game.prototype.resize = function (width, height) {
         this.canvas.width = width;
         this.canvas.height = height;
-        this.ctx.fillStyle = 'yellow';
+        this.ctx.fillStyle = 'orangered';
         this.ctx.font = '20px Impact'
         this.ctx.textAlign = 'right';
 
@@ -118,8 +120,8 @@ define(function () {
         this.ctx.fillText('Time: ' + this.formatTimer(this.timer), 10, 30);
         if (this.gameOver) {
           this.ctx.textAlign = 'center';
-          this.ctx.font = '50px Impact';
-          this.ctx.fillStyle = 'red';
+          this.ctx.font = '70px Impact';
+          this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText('GAME OVER', this.width * 0.5, this.height * 0.5)
         };
         this.ctx.restore();
@@ -242,8 +244,6 @@ define(function () {
         return this.x < -this.scaledWidth;
       }
 
-
-
       const canvas = document.getElementById('canvas1');
       const ctx = canvas.getContext('2d');
       canvas.width = 720;
@@ -257,8 +257,8 @@ define(function () {
         lastTime = timeStamp;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         game.render(deltaTime);
-        if (!game.gameOver) requestAnimationFrame(animate);
-        // requestAnimationFrame(animate);
+        // if (!game.gameOver) requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
       }
       requestAnimationFrame(animate);
     }
