@@ -41,7 +41,7 @@ define(function () {
         this.background = new Background(this);
         this.player = new Player(this);
         this.obstacles = [];
-        this.numberOfObstacles = 1;
+        this.numberOfObstacles = 20;
         this.gravity;
         this.speed;
         this.score = 0;
@@ -55,7 +55,7 @@ define(function () {
         });
 
         this.canvas.addEventListener('mousedown', e => {
-          this.player.flap();
+          this.player.flap(1);
           console.log("mousedown");
         });
       }
@@ -89,6 +89,9 @@ define(function () {
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.ratio = this.height / this.baseHeight;
+
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeStyle = "white";
 
         this.gravity = 0.17 * this.ratio;
         this.speed = 3 * this.ratio;
@@ -137,18 +140,26 @@ define(function () {
         this.height = 200;
         this.speedY;
         this.flapSpeed;
+        this.collisionX;
+        this.collisionY;
+        this.collisionRadius;
       }
       Player.prototype.draw = function () {
         this.game.ctx.fillRect(this.x, this.y, this.width, this.height);
+        this.game.ctx.beginPath();
+        this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
+        this.game.ctx.stroke();
       }
       Player.prototype.update = function () {
         this.y += this.speedY;
+        this.collisionY = this.y + this.height * 0.5;
         if (!this.isTouchingBottom()) {
           this.speedY += this.game.gravity;
         }
         // bottom boundary
         if (this.isTouchingBottom()) {
-          this.y = this.game.height - this.height;
+          this.flap(.6);
+          // this.y = this.game.height - this.height;
         }
       }
       Player.prototype.resize = function () {
@@ -157,16 +168,19 @@ define(function () {
         this.y = this.game.height * 0.5 - this.height * 0.5;
         this.speedY = -4 * this.game.ratio;
         this.flapSpeed = 7 * this.game.ratio;
+        this.collisionRadius = this.width * 0.5;
+        this.collisionX = this.x + this.width * 0.5;
+        // this.collisionY = this.y + this.height * 0.5;
       }
       Player.prototype.isTouchingBottom = function () {
-        return this.y >= this.game.height - this.height;
+        return this.y >= this.game.height - this.height * 1.1;
       }
       Player.prototype.isTouchingTop = function () {
         return this.y <= -this.game.height * 0.1;
       }
-      Player.prototype.flap = function () {
+      Player.prototype.flap = function (x) {
         if (!this.isTouchingTop()) {
-          this.speedY = -this.flapSpeed;
+          this.speedY = -this.flapSpeed * x;
         };
       }
 
@@ -214,12 +228,17 @@ define(function () {
         this.scaledHeight = this.spriteHeight * this.game.ratio;
         this.x = x;
         this.y = Math.random() * this.game.height - this.scaledHeight;
+        this.collisionX;
+        this.collisionY;
+        this.collisionRadius= this.scaledWidth * 0.5;
         this.speedY = Math.random() < 0.5 ? -1 : 1;
         this.markedFordeletion = false;
       }
       Obstacle.prototype.update = function () {
         this.x -= this.game.speed * 1.5;
         this.y += this.speedY;
+        this.collisionX = this.x + this.scaledWidth * 0.5;
+        this.collisionY = this.y + this.scaledHeight * 0.5;
         if (this.y <= this.scaledHeight * -0.2 || this.y >= this.game.height - this.scaledHeight) {
           this.speedY *= -1;
         }
@@ -235,6 +254,9 @@ define(function () {
       }
       Obstacle.prototype.draw = function () {
         this.game.ctx.fillRect(this.x, this.y, this.scaledWidth, this.scaledHeight);
+        this.game.ctx.beginPath();
+        this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
+        this.game.ctx.stroke();
       }
       Obstacle.prototype.resize = function () {
         this.scaledWidth = this.spriteWidth * this.game.ratio;
