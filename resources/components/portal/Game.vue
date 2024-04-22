@@ -47,7 +47,6 @@ define(function () {
         this.score = 0;
         this.gameOver;
         this.timer = 0;
-        this.b = 3;
 
         this.resize(window.innerWidth, window.innerHeight);
 
@@ -60,8 +59,7 @@ define(function () {
 
         this.canvas.addEventListener('mousedown', e => {
           this.player.flap(1);
-          console.log("mousedown");
-          this.b = 3;
+          console.log("mousedown");    
         });
       }
       Game.prototype.render = function (deltaTime) {
@@ -165,11 +163,8 @@ define(function () {
         // bottom boundary
         if (this.isTouchingBottom()) {          
 
-          this.bounce(this.game.b);
-          console.log(this.game.b);
-          //this.flap(0.6);
+         this.flap(0.6);
 
-          // this.y = this.game.height - this.height;
         }
       }
       Player.prototype.resize = function () {
@@ -192,20 +187,6 @@ define(function () {
         if (!this.isTouchingTop()) {
           this.speedY = -this.flapSpeed * x;
         };
-      }
-      Player.prototype.bounce = function (b) {
-        if (b = 3){
-          this.flap(0.9);
-          this.game.b--;
-        } else if (b = 2) {
-          this.flap(0.6);
-          this.game.b--;
-        } else if (b = 1) {
-          this.flap(0.3);
-          this.game.b--;
-        } else if ( b<1 ) {
-          this.y = this.game.height - this.height;
-        }
       }
 
       function Background(game) {
