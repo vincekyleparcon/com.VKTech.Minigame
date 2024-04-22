@@ -41,7 +41,8 @@ define(function () {
         this.background = new Background(this);
         this.player = new Player(this);
         this.obstacles = [];
-        this.numberOfObstacles = 10;
+        this.obstacles2 = [];
+        this.numberOfObstacles = 8;
         this.gravity;
         this.speed;
         this.score = 0;
@@ -68,6 +69,7 @@ define(function () {
         // console.log("DELTA: " + deltaTime);
         // this.timer += deltaTime;
         // console.log("TIMER: " + this.timer);
+        if(this.obstacles.length <= 5) this.addObstacles();
 
         if (!this.gameOver) this.timer += deltaTime;
 
@@ -117,6 +119,21 @@ define(function () {
           this.obstacles.push(new Obstacle(this, firstX + i * obstacleSpacing));
         }
       }
+      Game.prototype.addObstacles = function () {
+        this.obstacles2 = [];
+        const firstX = 6.4 * this.baseHeight * this.ratio;
+        const obstacleSpacing = 800 * this.ratio;
+        for (let i = 0; i < this.numberOfObstacles; i++) {
+          this.obstacles.push(new Obstacle(this, firstX + i * obstacleSpacing));
+        }
+      }
+      Game.prototype.checkCollision = function (a, b){
+        const dx = a.collisionX - b.collisionX;
+        const dy = a.collisionY - b.collisionY;
+        const distance = Math.hypot(dx, dy);
+        const sumOfRadii = a.collisionRadius + b.collisionRadius;
+        return distance <= sumOfRadii;
+      }
       Game.prototype.formatTimer = function () {
         return (this.timer * 0.001).toFixed(1);
       }
@@ -126,11 +143,31 @@ define(function () {
         this.ctx.textAlign = 'left';
         this.ctx.fillText('Time: ' + this.formatTimer(this.timer), 10, 30);
         if (this.gameOver) {
+
+          if (this.player.collided){
+            this.message1 = "Game Over";
+            this.message2 = "Score: " + this.score;
+          } else {
+            this.message1 = "Win";
+            this.message2 = "Score: " + this.score;
+          }
+
           this.ctx.textAlign = 'center';
           this.ctx.font = '50px Impact';
           this.ctx.fillStyle = 'firebrick';
-          this.ctx.fillText('GAME OVER', this.width * 0.5, this.height * 0.5)
+          this.ctx.fillText(this.message1, this.width * 0.5, this.height * 0.5 - 50)
+
+          this.ctx.textAlign = 'center';
+          this.ctx.font = '20px Impact';
+          this.ctx.fillStyle = 'firebrick';
+          this.ctx.fillText(this.message2, this.width * 0.5, this.height * 0.5 - 20)
+
+          this.ctx.textAlign = 'center';
+          this.ctx.font = '20px Impact';
+          this.ctx.fillStyle = 'firebrick';
+          this.ctx.fillText("Press R to try again", this.width * 0.5, this.height * 0.5 + 10)
         };
+        
         this.ctx.restore();
       }
 
@@ -147,9 +184,10 @@ define(function () {
         this.collisionX;
         this.collisionY;
         this.collisionRadius;
+        this.collided = false;
       }
       Player.prototype.draw = function () {
-        this.game.ctx.fillRect(this.x, this.y, this.width, this.height);
+        //this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
         this.game.ctx.beginPath();
         this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
         this.game.ctx.stroke();
@@ -175,6 +213,7 @@ define(function () {
         this.flapSpeed = 7 * this.game.ratio;
         this.collisionRadius = this.width * 0.5;
         this.collisionX = this.x + this.width * 0.5;
+        this.collided = false;
         // this.collisionY = this.y + this.height * 0.5;
       }
       Player.prototype.isTouchingBottom = function () {
@@ -232,7 +271,7 @@ define(function () {
         this.scaledWidth = this.spriteWidth * this.game.ratio;
         this.scaledHeight = this.spriteHeight * this.game.ratio;
         this.x = x;
-        this.y = Math.random() * this.game.height - this.scaledHeight;
+        this.y = this.game.height * (0.5 * Math.random());
         this.collisionX;
         this.collisionY;
         this.collisionRadius= this.scaledWidth * 0.5;
@@ -251,14 +290,19 @@ define(function () {
           this.markedFordeletion = true;
           this.game.obstacles = this.game.obstacles.filter(obstacle => !obstacle.markedFordeletion);
           console.log("obstacles left: " + this.game.obstacles.length);
-          this.game.score++;
-          if (this.game.obstacles.length <= 0) {
-            this.game.gameOver = true;
-          }
+          if (!this.game.gameOver) this.game.score++;
+        }
+        if (this.game.obstacles.length <= 0) {
+          this.game.gameOver = true;
+        }
+        //collision
+        if (this.game.checkCollision(this, this.game.player)){
+          this.game.gameOver = true;
+          this.game.player.collided = true;
         }
       }
       Obstacle.prototype.draw = function () {
-        this.game.ctx.fillRect(this.x, this.y, this.scaledWidth, this.scaledHeight);
+        //this.game.ctx.fillRect(this.x, this.y, this.scaledWidth, this.scaledHeight);
         this.game.ctx.beginPath();
         this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
         this.game.ctx.stroke();
@@ -284,7 +328,7 @@ define(function () {
         lastTime = timeStamp;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         game.render(deltaTime);
-        // if (!game.gameOver) requestAnimationFrame(animate);
+        //if (!game.gameOver) requestAnimationFrame(animate);
         requestAnimationFrame(animate);
       }
       requestAnimationFrame(animate);
