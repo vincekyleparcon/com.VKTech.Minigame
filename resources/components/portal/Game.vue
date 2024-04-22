@@ -41,14 +41,18 @@ define(function () {
         this.background = new Background(this);
         this.player = new Player(this);
         this.obstacles = [];
-        this.numberOfObstacles = 20;
+        this.numberOfObstacles = 10;
         this.gravity;
         this.speed;
         this.score = 0;
         this.gameOver;
         this.timer = 0;
+        this.b = 3;
 
         this.resize(window.innerWidth, window.innerHeight);
+
+        console.log("Game Started");
+        console.log("Created Obstacles: " + this.numberOfObstacles);
 
         window.addEventListener('resize', e => {
           this.resize(e.currentTarget.innerWidth, e.currentTarget.innerHeight);
@@ -57,10 +61,12 @@ define(function () {
         this.canvas.addEventListener('mousedown', e => {
           this.player.flap(1);
           console.log("mousedown");
+          this.b = 3;
         });
       }
       Game.prototype.render = function (deltaTime) {
 
+       
         // console.log("DELTA: " + deltaTime);
         // this.timer += deltaTime;
         // console.log("TIMER: " + this.timer);
@@ -123,7 +129,7 @@ define(function () {
         this.ctx.fillText('Time: ' + this.formatTimer(this.timer), 10, 30);
         if (this.gameOver) {
           this.ctx.textAlign = 'center';
-          this.ctx.font = '70px Impact';
+          this.ctx.font = '50px Impact';
           this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText('GAME OVER', this.width * 0.5, this.height * 0.5)
         };
@@ -157,8 +163,12 @@ define(function () {
           this.speedY += this.game.gravity;
         }
         // bottom boundary
-        if (this.isTouchingBottom()) {
-          this.flap(.6);
+        if (this.isTouchingBottom()) {          
+
+          this.bounce(this.game.b);
+          console.log(this.game.b);
+          //this.flap(0.6);
+
           // this.y = this.game.height - this.height;
         }
       }
@@ -182,6 +192,20 @@ define(function () {
         if (!this.isTouchingTop()) {
           this.speedY = -this.flapSpeed * x;
         };
+      }
+      Player.prototype.bounce = function (b) {
+        if (b = 3){
+          this.flap(0.9);
+          this.game.b--;
+        } else if (b = 2) {
+          this.flap(0.6);
+          this.game.b--;
+        } else if (b = 1) {
+          this.flap(0.3);
+          this.game.b--;
+        } else if ( b<1 ) {
+          this.y = this.game.height - this.height;
+        }
       }
 
       function Background(game) {
@@ -245,7 +269,7 @@ define(function () {
         if (this.isOffScreen()) {
           this.markedFordeletion = true;
           this.game.obstacles = this.game.obstacles.filter(obstacle => !obstacle.markedFordeletion);
-          console.log(this.game.obstacles.length);
+          console.log("obstacles left: " + this.game.obstacles.length);
           this.game.score++;
           if (this.game.obstacles.length <= 0) {
             this.game.gameOver = true;
