@@ -5,7 +5,7 @@
       <img id="background" src='<% .Helpers.AssetPath "backgrounds/background trees.png" %>'>
       <img id="background2" src='<% .Helpers.AssetPath "backgrounds/background sky.png" %>'>
       <img id="PSprite" src='<% .Helpers.AssetPath "icons/UFO.png" %>'>
-      <img id="OSprite1" src='<% .Helpers.AssetPath "obstacles/cyclone.png" %>'>
+      <img id="OSprite1" src='<% .Helpers.AssetPath "obstacles/obstacles.png" %>'>
     </div>
   </div>
 </template>
@@ -25,6 +25,7 @@
   max-width: 100%;
   max-height: 100%;
 }
+
 </style>
 
 <script>
@@ -270,8 +271,8 @@ define(function () {
 
       function Obstacle(game, x) {
         this.game = game;
-        this.spriteWidth = 150;
-        this.spriteHeight = 150;
+        this.spriteWidth = 200;
+        this.spriteHeight = 200;
         this.scaledWidth = this.spriteWidth * this.game.ratio;
         this.scaledHeight = this.spriteHeight * this.game.ratio;
         this.x = x;
@@ -282,10 +283,13 @@ define(function () {
         this.speedY = Math.random() < 0.5 ? -1 : 1;
         this.markedFordeletion = false;
         this.image = document.getElementById("OSprite1");
+        this.randomPic = Math.floor(4 * Math.random());
+  
       }
       Obstacle.prototype.update = function () {
         this.x -= this.game.speed * 2.5;
         this.y += this.speedY;
+
         this.collisionX = this.x + this.scaledWidth * 0.5;
         this.collisionY = this.y + this.scaledHeight * 0.5;
         if (this.y <= this.scaledHeight * -0.2 || this.y >= this.game.height - this.scaledHeight) {
@@ -308,10 +312,10 @@ define(function () {
       }
       Obstacle.prototype.draw = function () {
         // this.game.ctx.fillRect(this.x, this.y, this.scaledWidth, this.scaledHeight);
-        this.game.ctx.drawImage(this.image, this.x, this.y, this.scaledWidth, this.scaledHeight);
+        this.game.ctx.drawImage(this.image, 0, this.randomPic * this.spriteHeight, this.spriteWidth, this.spriteHeight, this.x, this.y, this.scaledWidth, this.scaledHeight);
         this.game.ctx.beginPath();
         this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius * 0.8, 0, Math.PI * 2);
-        this.game.ctx.stroke();
+       // this.game.ctx.stroke();
       }
       Obstacle.prototype.resize = function () {
         this.scaledWidth = this.spriteWidth * this.game.ratio;
