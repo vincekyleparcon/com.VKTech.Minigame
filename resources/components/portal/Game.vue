@@ -4,7 +4,7 @@
     <div class="assets">
       <img id="background" src='<% .Helpers.AssetPath "backgrounds/background trees.png" %>'>
       <img id="background2" src='<% .Helpers.AssetPath "backgrounds/background sky.png" %>'>
-      <img id="PSprite" src='<% .Helpers.AssetPath "icons/UFO.png" %>'>
+      <img id="PSprite" src='<% .Helpers.AssetPath "icons/UFO2.png" %>'>
       <img id="OSprite1" src='<% .Helpers.AssetPath "obstacles/obstacles.png" %>'>
     </div>
   </div>
@@ -19,11 +19,12 @@
 }
 
 #canvas1 {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   max-width: 100%;
   max-height: 100%;
+  overflow: hidden;
 }
 
 </style>
@@ -62,8 +63,15 @@ define(function () {
         });
 
         this.canvas.addEventListener('mousedown', e => {
-          this.player.flap(1);
+          if (!this.gameOver){
+            this.player.flap(1);
+          }
           console.log("mousedown");    
+        });
+
+        this.canvas.addEventListener('keydown', e => {
+          this.player.flap(1);
+          console.log("mousedown");
         });
       }
       Game.prototype.render = function (deltaTime) {
@@ -113,6 +121,7 @@ define(function () {
         });
 
         this.gameOver = false;
+        this.time = 0;
       }
       Game.prototype.createObstacles = function () {
         this.obstacles = [];
@@ -194,20 +203,26 @@ define(function () {
         //this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
         this.game.ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
         this.game.ctx.beginPath();
-        this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius * 0.8, 0, Math.PI * 2);
-        this.game.ctx.stroke();
+        this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
+       // this.game.ctx.stroke();
       }
       Player.prototype.update = function () {
         this.y += this.speedY;
-        this.collisionY = this.y + this.height * 0.5;
+        this.collisionY = this.y + this.height * 0.45;
         if (!this.isTouchingBottom()) {
           this.speedY += this.game.gravity;
         }
         // bottom boundary
-        if (this.isTouchingBottom()) {          
+        if (this.isTouchingBottom() && !this.game.gameOver) {          
 
          this.flap(0.6);
 
+        }
+
+        if(this.game.gameOver){
+          if (this.x >= -300){
+          this.x -= 1;
+          }
         }
       }
       Player.prototype.resize = function () {
@@ -216,13 +231,13 @@ define(function () {
         this.y = this.game.height * 0.5 - this.height * 0.5;
         this.speedY = -4 * this.game.ratio;
         this.flapSpeed = 7 * this.game.ratio;
-        this.collisionRadius = this.width * 0.5;
+        this.collisionRadius = this.width * 0.5 * 0.7;
         this.collisionX = this.x + this.width * 0.5;
         this.collided = false;
         // this.collisionY = this.y + this.height * 0.5;
       }
       Player.prototype.isTouchingBottom = function () {
-        return this.y >= this.game.height - this.height * 1.1;
+        return this.y >= this.game.height - this.height * 1.05;
       }
       Player.prototype.isTouchingTop = function () {
         return this.y <= -this.game.height * 0.1;
@@ -245,6 +260,10 @@ define(function () {
         this.x2;
       }
       Background.prototype.update = function () {
+        if(this.game.gameOver){
+          this.game.speed = 0.5;
+        }
+
         this.x -= this.game.speed * 2;
         if (this.x <= -this.scaledWidth) this.x = 0;
         this.x2 -= this.game.speed * 1;
@@ -279,23 +298,30 @@ define(function () {
         this.y = this.game.height * (0.5 * Math.random());
         this.collisionX;
         this.collisionY;
-        this.collisionRadius= this.scaledWidth * 0.5;
         this.speedY = Math.random() < 0.5 ? -1 : 1;
         this.markedFordeletion = false;
         this.image = document.getElementById("OSprite1");
         this.randomPic = Math.floor(4 * Math.random());
-  
+        this.collisionRadius = this.scaledWidth * 0.5 * 0.8;
+        this.collided = false;
+    
       }
       Obstacle.prototype.update = function () {
-        this.x -= this.game.speed * 2.5;
+      
+        
         this.y += this.speedY;
+        this.x -= this.game.speed * 2.5;
+
+        if (!this.game.gameOver){                   
+          this.collisionY = this.y + this.scaledHeight * 0.5;
+          if (this.y <= this.scaledHeight * -0.2 || this.y >= this.game.height - this.scaledHeight) {
+            this.speedY *= -1;
+          }
+        } else { this.y += this.speedY * 2}
 
         this.collisionX = this.x + this.scaledWidth * 0.5;
-        this.collisionY = this.y + this.scaledHeight * 0.5;
-        if (this.y <= this.scaledHeight * -0.2 || this.y >= this.game.height - this.scaledHeight) {
-          this.speedY *= -1;
-        }
-        if (this.isOffScreen()) {
+
+        if (this.isOffScreen() || this.collided) {
           this.markedFordeletion = true;
           this.game.obstacles = this.game.obstacles.filter(obstacle => !obstacle.markedFordeletion);
           console.log("obstacles left: " + this.game.obstacles.length);
@@ -308,14 +334,15 @@ define(function () {
         if (this.game.checkCollision(this, this.game.player)){
           this.game.gameOver = true;
           this.game.player.collided = true;
+          this.collided = true;
         }
       }
       Obstacle.prototype.draw = function () {
         // this.game.ctx.fillRect(this.x, this.y, this.scaledWidth, this.scaledHeight);
         this.game.ctx.drawImage(this.image, 0, this.randomPic * this.spriteHeight, this.spriteWidth, this.spriteHeight, this.x, this.y, this.scaledWidth, this.scaledHeight);
         this.game.ctx.beginPath();
-        this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius * 0.8, 0, Math.PI * 2);
-       // this.game.ctx.stroke();
+        this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
+        //this.game.ctx.stroke();
       }
       Obstacle.prototype.resize = function () {
         this.scaledWidth = this.spriteWidth * this.game.ratio;
