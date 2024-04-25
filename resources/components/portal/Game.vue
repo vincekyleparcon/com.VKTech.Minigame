@@ -180,6 +180,10 @@ define(function () {
           this.ctx.fillText("Press R to try again", this.width * 0.5, this.height * 0.5 + 10)
         };
         
+        for (let i = 0; i < this.player.energy; i++){
+          this.ctx.fillRect(10 + i*3, 40, 2, 15);
+        }
+
         this.ctx.restore();
       }
 
@@ -197,6 +201,9 @@ define(function () {
         this.collisionY;
         this.collisionRadius;
         this.collided = false;
+        this.energy = 30;
+        this.maxEnergu = this.energy * 2;
+        this.minEnergy = 15;
         this.image = document.getElementById("PSprite");
       }
       Player.prototype.draw = function () {
@@ -246,6 +253,9 @@ define(function () {
         if (!this.isTouchingTop()) {
           this.speedY = -this.flapSpeed * x;
         };
+      }
+      Player.prototype.handleEnergy = function () {
+        
       }
 
       function Background(game) {
