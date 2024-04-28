@@ -49,7 +49,27 @@ define(function () {
         this.numberOfObstacles = 8;
         this.gravity;
         this.speed;
+        this.minSpeed;
+        this.maxSpeed;
         this.score = 0;
+        this.highScore = 0;
+
+        // var formData = { 
+        //   name: "Kyle",
+        //   score: this.score,  
+        // };
+        
+        var formData = { highScore: this.highScorescore };
+          $flare.http.get('<% .Helpers.UrlForRoute "score.get" %>', formData)
+            .then(function (response) {
+              console.log(response);
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+
+        
+
         this.gameOver;
         this.timer = 0;
 
@@ -69,9 +89,11 @@ define(function () {
           console.log("mousedown");    
         });
 
-        this.canvas.addEventListener('keydown', e => {
-          this.player.flap(1);
-          console.log("mousedown");
+        document.addEventListener('keydown', e => {
+          if (e.key === " " && !this.gameOver) {
+            this.player.flap(1);
+            console.log("spacebar pressed");
+          }
         });
       }
       Game.prototype.render = function (deltaTime) {
@@ -122,6 +144,8 @@ define(function () {
 
         this.gameOver = false;
         this.time = 0;
+        this.isSubmitted = false;
+        this.submitting = true;
       }
       Game.prototype.createObstacles = function () {
         this.obstacles = [];
@@ -151,7 +175,11 @@ define(function () {
       }
       Game.prototype.drawStatusText = function () {
         this.ctx.save();
-        this.ctx.fillText('Score: ' + this.score, this.width - 10, 30);
+
+        this.ctx.font = '25px Impact';
+        this.ctx.fillText('Score: ' + this.score, this.width -10, 55);
+        this.ctx.fillText('High Score: ' + this.highScore, this.width - 10, 30);
+
         this.ctx.textAlign = 'left';
         this.ctx.fillText('Time: ' + this.formatTimer(this.timer), 10, 30);
         if (this.gameOver) {
@@ -159,6 +187,25 @@ define(function () {
           if (this.player.collided){
             this.message1 = "Game Over";
             this.message2 = "Score: " + this.score;
+
+            var formData = { 
+              score: this.score, 
+              highScore: 999,
+            };
+
+            if (this.submitting){
+
+              $flare.http.post('<% .Helpers.UrlForRoute "score.save" %>', formData)
+                .then(function (response) {
+                  console.log(response);
+                })
+                .catch(function (error) {
+                  console.log(error);
+                });
+                this.submitting = false;
+
+            }
+
           } else {
             this.message1 = "Win";
             this.message2 = "Score: " + this.score;
@@ -180,8 +227,10 @@ define(function () {
           this.ctx.fillText("Press R to try again", this.width * 0.5, this.height * 0.5 + 10)
         };
         
-        for (let i = 0; i < this.player.energy; i++){
-          this.ctx.fillRect(10 + i*3, 40, 2, 15);
+        
+        for (let i = 0; i < this.player.energy; i++){   
+          if (this.player.energy >= this.player.maxEnergu) this.ctx.fillStyle = 'yellow';    
+          this.ctx.fillRect(10 + i*4, 40, 4, 15);
         }
 
         this.ctx.restore();
@@ -196,13 +245,15 @@ define(function () {
         this.width = 200;
         this.height = 200;
         this.speedY;
+        this.minSpeed;
+        this.maxSpeed;
         this.flapSpeed;
         this.collisionX;
         this.collisionY;
         this.collisionRadius;
         this.collided = false;
-        this.energy = 30;
-        this.maxEnergu = this.energy * 2;
+        this.energy = 20;
+        this.maxEnergu = this.energy * 3;
         this.minEnergy = 15;
         this.image = document.getElementById("PSprite");
       }
@@ -214,6 +265,7 @@ define(function () {
        // this.game.ctx.stroke();
       }
       Player.prototype.update = function () {
+        this.handleEnergy();
         this.y += this.speedY;
         this.collisionY = this.y + this.height * 0.45;
         if (!this.isTouchingBottom()) {
@@ -255,7 +307,15 @@ define(function () {
         };
       }
       Player.prototype.handleEnergy = function () {
-        
+        if (this.energy < this.maxEnergu){
+          this.energy += 0.75;
+        }
+      }
+      Player.prototype.startCharge = function () {
+
+      }
+      Player.prototype.stopCharge = function () { 
+
       }
 
       function Background(game) {
