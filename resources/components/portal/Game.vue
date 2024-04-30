@@ -1,6 +1,7 @@
 <template>
   <div>
     <canvas id="canvas1"></canvas>
+
     <div class="assets">
       <img id="background" src='<% .Helpers.AssetPath "backgrounds/background trees.png" %>'>
       <img id="background2" src='<% .Helpers.AssetPath "backgrounds/background sky.png" %>'>
@@ -33,6 +34,7 @@
 define(function () {
   var component = {
     template: template,
+
     mounted: function () {
 
       function Game(canvas, context) {
@@ -53,25 +55,23 @@ define(function () {
         this.maxSpeed;
         this.score = 0;
         this.highScore = 0;
-
-        // var formData = { 
-        //   name: "Kyle",
-        //   score: this.score,  
-        // };
-        
-        var formData = { highScore: this.highScorescore };
-          $flare.http.get('<% .Helpers.UrlForRoute "score.get" %>', formData)
-            .then(function (response) {
-              console.log(response);
-            })
-            .catch(function (error) {
-              console.log(error);
-            });
-
-        
-
         this.gameOver;
         this.timer = 0;
+        this.pause = false;
+        this.submitting = true; 
+        this.difficulty = 1;  
+
+        var formQuery = { highScore: this.highScore };
+
+        $flare.http.get('<% .Helpers.UrlForRoute "score.get" %>', formQuery)
+          .then(function (response) {
+            console.log(response.highScore);
+            this.highScore = response.highScore;
+            console.log(this.highScore);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
 
         this.resize(window.innerWidth, window.innerHeight);
 
@@ -95,13 +95,38 @@ define(function () {
             console.log("spacebar pressed");
           }
         });
+
+        document.addEventListener('keydown', e => {
+          if (e.key === "r" && this.gameOver) {
+            console.log("r pressed");
+            window.location.reload();
+          }
+
+          if (e.key === "p" && !this.gameOver) {
+            console.log("paused pressed");
+
+            if (this.pause) {
+              this.pause = false;
+              requestAnimationFrame(animate);
+            } else {
+              this.pause = true;
+            }
+            console.log(this.pause);
+          }
+
+          if (e.key === "e" && !this.gameOver) {
+            if (this.player.charging) { 
+              this.player.stopCharge(); 
+            } else {
+              this.player.startCharge();
+            }        
+          }
+        });
       }
       Game.prototype.render = function (deltaTime) {
 
-       
-        // console.log("DELTA: " + deltaTime);
-        // this.timer += deltaTime;
-        // console.log("TIMER: " + this.timer);
+        
+
         if(this.obstacles.length <= 5) this.addObstacles();
 
         if (!this.gameOver) this.timer += deltaTime;
@@ -119,9 +144,10 @@ define(function () {
         });
       }
       Game.prototype.resize = function (width, height) {
+        this.speed = 3 * this.ratio * this.difficulty;
         this.canvas.width = width;
         this.canvas.height = height;
-        this.ctx.fillStyle = 'orangered';
+        // this.ctx.fillStyle = 'green';
         this.ctx.font = '20px Impact'
         this.ctx.textAlign = 'right';
 
@@ -133,7 +159,10 @@ define(function () {
         this.ctx.strokeStyle = "white";
 
         this.gravity = 0.17 * this.ratio;
-        this.speed = 3 * this.ratio;
+        
+        this.minSpeed = this.speed;
+        this.maxSpeed = this.speed * 1.5;
+
         this.background.resize();
         this.player.resize();
 
@@ -144,8 +173,6 @@ define(function () {
 
         this.gameOver = false;
         this.time = 0;
-        this.isSubmitted = false;
-        this.submitting = true;
       }
       Game.prototype.createObstacles = function () {
         this.obstacles = [];
@@ -182,55 +209,62 @@ define(function () {
 
         this.ctx.textAlign = 'left';
         this.ctx.fillText('Time: ' + this.formatTimer(this.timer), 10, 30);
-        if (this.gameOver) {
+
+        this.difficulty = 1 + this.timer / 60000;
+        if (!this.player.charging) { this.speed = 3 * this.ratio * this.difficulty; }
+        
+      
+        if (this.gameOver || this.pause) {
 
           if (this.player.collided){
             this.message1 = "Game Over";
             this.message2 = "Score: " + this.score;
 
             var formData = { 
-              score: this.score, 
-              highScore: 999,
+              score: this.score
             };
 
-            if (this.submitting){
+          if (this.submitting) {
 
-              $flare.http.post('<% .Helpers.UrlForRoute "score.save" %>', formData)
-                .then(function (response) {
-                  console.log(response);
-                })
-                .catch(function (error) {
-                  console.log(error);
-                });
-                this.submitting = false;
+            $flare.http.post('<% .Helpers.UrlForRoute "score.save" %>', formData)
+              .then(function (response) {
+                console.log(response);
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+              this.submitting = false;
 
             }
 
-          } else {
-            this.message1 = "Win";
+          } else if (this.pause) {
+            this.message1 = "PAUSED";
             this.message2 = "Score: " + this.score;
           }
 
           this.ctx.textAlign = 'center';
           this.ctx.font = '50px Impact';
-          this.ctx.fillStyle = 'firebrick';
+          // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText(this.message1, this.width * 0.5, this.height * 0.5 - 50)
 
           this.ctx.textAlign = 'center';
           this.ctx.font = '20px Impact';
-          this.ctx.fillStyle = 'firebrick';
+          // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText(this.message2, this.width * 0.5, this.height * 0.5 - 20)
 
           this.ctx.textAlign = 'center';
           this.ctx.font = '20px Impact';
-          this.ctx.fillStyle = 'firebrick';
+          // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText("Press R to try again", this.width * 0.5, this.height * 0.5 + 10)
         };
         
         
         for (let i = 0; i < this.player.energy; i++){   
-          if (this.player.energy >= this.player.maxEnergu) this.ctx.fillStyle = 'yellow';    
-          this.ctx.fillRect(10 + i*4, 40, 4, 15);
+          this.ctx.fillStyle = 'red'
+          if (this.player.energy >= this.player.maxEnergu * 0.5) this.ctx.fillStyle = 'orange';
+          if (this.player.energy >= this.player.maxEnergu * 0.75) this.ctx.fillStyle = 'yellow';
+          if (this.player.energy >= this.player.maxEnergu) this.ctx.fillStyle = 'green';    
+          this.ctx.fillRect(10 + i*this.player.barSize, 40, 20, 15 * this.ratio);
         }
 
         this.ctx.restore();
@@ -255,7 +289,9 @@ define(function () {
         this.energy = 20;
         this.maxEnergu = this.energy * 3;
         this.minEnergy = 15;
+        this.barSize;
         this.image = document.getElementById("PSprite");
+        this.charging = false;
       }
       Player.prototype.draw = function () {
         //this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
@@ -293,6 +329,7 @@ define(function () {
         this.collisionRadius = this.width * 0.5 * 0.7;
         this.collisionX = this.x + this.width * 0.5;
         this.collided = false;
+        this.barSize = 5 * this.game.ratio;
         // this.collisionY = this.y + this.height * 0.5;
       }
       Player.prototype.isTouchingBottom = function () {
@@ -302,20 +339,30 @@ define(function () {
         return this.y <= -this.game.height * 0.1;
       }
       Player.prototype.flap = function (x) {
+        // this.stopCharge();
         if (!this.isTouchingTop()) {
           this.speedY = -this.flapSpeed * x;
         };
       }
       Player.prototype.handleEnergy = function () {
-        if (this.energy < this.maxEnergu){
-          this.energy += 0.75;
+        if (this.energy < this.maxEnergu && !this.charging && !this.game.gameOver){
+          this.energy += 0.1;
+        }
+        if (this.energy <= 0){
+          this.energy = 0;
+          this.stopCharge();
+        }
+        if (this.charging) {
+          this.energy -= 0.2;
         }
       }
       Player.prototype.startCharge = function () {
-
+        this.charging = true;
+        this.game.speed = this.game.maxSpeed;
       }
       Player.prototype.stopCharge = function () { 
-
+        this.charging = false;
+        this.game.speed = this.game.minSpeed;
       }
 
       function Background(game) {
@@ -401,10 +448,14 @@ define(function () {
           this.game.gameOver = true;
         }
         //collision
+        if (!this.game.player.charging){
         if (this.game.checkCollision(this, this.game.player)){
+        
           this.game.gameOver = true;
           this.game.player.collided = true;
           this.collided = true;
+          
+        }
         }
       }
       Obstacle.prototype.draw = function () {
@@ -435,8 +486,9 @@ define(function () {
         lastTime = timeStamp;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         game.render(deltaTime);
-        //if (!game.gameOver) requestAnimationFrame(animate);
-        requestAnimationFrame(animate);
+        if (!game.pause) requestAnimationFrame(animate);
+        // requestAnimationFrame(animate);
+        // requestAnimationFrame(animate);
       }
       requestAnimationFrame(animate);
     }

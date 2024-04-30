@@ -15,7 +15,7 @@ type MyData struct {
 }
 
 type MyScore struct {
-	Highscore int `json:"highScore"`
+	HighScore int `json:"highScore"`
 	Score     int `json:"score"`
 }
 
@@ -42,10 +42,7 @@ func Init(api sdkplugin.PluginApi) {
 	})
 
 	Route := api.Http().HttpRouter().PluginRouter().Post("/score/save", func(w http.ResponseWriter, r *http.Request) {
-		var data struct {
-			Name  string `json:"name"`
-			Score int    `json:"score"`
-		}
+		var data MyScore
 		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 			api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -60,23 +57,26 @@ func Init(api sdkplugin.PluginApi) {
 		// 	return
 		// }
 
-		var oldData MyData
+		var oldData MyScore
 		err := api.Config().Plugin(my_key).Get(&oldData)
 		if err != nil {
 			api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		score, ok := oldData.Records[data.Name]
-		if ok {
-			oldData.Records[data.Name] = data.Score
-			err = api.Config().Plugin(my_key).Save(oldData)
+		if data.Score >= oldData.HighScore {
+			data.HighScore = data.Score
 		} else {
-			oldData.Records[data.Name] = data.Score
-			err = api.Config().Plugin(my_key).Save(oldData)
+			data.HighScore = oldData.HighScore
 		}
 
-		if err := api.Config().Plugin(my_key).Save(oldData); err != nil {
+		// score, ok := oldData.Records[data.Name]
+		// if ok {
+		// 	oldData.Records[data.Name] = data.Score
+		// 	err = api.Config().Plugin(my_key).Save(oldData)
+		// }
+
+		if err := api.Config().Plugin(my_key).Save(data); err != nil {
 			api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -85,7 +85,8 @@ func Init(api sdkplugin.PluginApi) {
 
 	})
 
-	GetRoute := api.Http().HttpRouter().PluginRouter().Get("/score/get", func(w http.ResponseWriter, r *http.Request) {
+	RouteGet := api.Http().HttpRouter().PluginRouter().Get("/score/get", func(w http.ResponseWriter, r *http.Request) {
+
 		my_key := "my_score"
 
 		var oldData MyScore
@@ -96,9 +97,10 @@ func Init(api sdkplugin.PluginApi) {
 		}
 
 		api.Http().VueResponse().Json(w, oldData, http.StatusOK)
+
 	})
 
 	Route.Name("score.save")
-	GetRoute.Name("score.get")
+	RouteGet.Name("score.get")
 
 }
