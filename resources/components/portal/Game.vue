@@ -292,6 +292,7 @@ define(function () {
         this.barSize;
         this.image = document.getElementById("PSprite");
         this.charging = false;
+        this.invulnerable = false;
       }
       Player.prototype.draw = function () {
         //this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
@@ -363,6 +364,11 @@ define(function () {
       Player.prototype.stopCharge = function () { 
         this.charging = false;
         this.game.speed = this.game.minSpeed;
+      }
+      Player.prototype.isInvulnerable = function (){
+        if (this.charging){
+          return true
+        }
       }
 
       function Background(game) {
@@ -448,7 +454,7 @@ define(function () {
           this.game.gameOver = true;
         }
         //collision
-        if (!this.game.player.charging){
+        if (!this.game.player.isInvulnerable()){
         if (this.game.checkCollision(this, this.game.player)){
         
           this.game.gameOver = true;
