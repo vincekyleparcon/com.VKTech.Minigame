@@ -6,7 +6,10 @@
       <img id="background" src='<% .Helpers.AssetPath "backgrounds/background trees.png" %>'>
       <img id="background2" src='<% .Helpers.AssetPath "backgrounds/background sky.png" %>'>
       <img id="PSprite" src='<% .Helpers.AssetPath "icons/UFO2.png" %>'>
+      <img id="woodBoard" src='<% .Helpers.AssetPath "backgrounds/wood board.png" %>'>
       <img id="OSprite1" src='<% .Helpers.AssetPath "obstacles/obstacles.png" %>'>
+      <img id="playerButton" src='<% .Helpers.AssetPath "backgrounds/buttons.png" %>'>
+
     </div>
   </div>
 </template>
@@ -60,6 +63,8 @@ define(function () {
         this.pause = false;
         this.submitting = true; 
         this.difficulty = 1;  
+        this.woodImage = document.getElementById('woodBoard');
+        this.buttonImage = document.getElementById('playerButton');
 
         var formQuery = { highScore: this.highScore };
 
@@ -96,6 +101,10 @@ define(function () {
           }
         });
 
+        document.addEventListener('touchmove', function (e) {
+          e.preventDefault();
+        }, { passive: false });
+
         document.addEventListener('keydown', e => {
           if (e.key === "r" && this.gameOver) {
             console.log("r pressed");
@@ -107,7 +116,7 @@ define(function () {
 
             if (this.pause) {
               this.pause = false;
-              requestAnimationFrame(animate);
+              // requestAnimationFrame(animate);
             } else {
               this.pause = true;
             }
@@ -129,19 +138,32 @@ define(function () {
 
         if(this.obstacles.length <= 5) this.addObstacles();
 
-        if (!this.gameOver) this.timer += deltaTime;
 
-        this.background.update();
+        
+       
+        
+        if (!this.pause) {
+        if (!this.gameOver) this.timer += deltaTime;
+          this.background.update();
+          this.player.update();
+          
+        };
+        
+
         this.background.draw();
-        this.player.update();
+        
         this.player.draw();
 
-        this.drawStatusText();
+       
 
         this.obstacles.forEach(obstacle => {
-          obstacle.update();
+          if (!this.pause) obstacle.update();
           obstacle.draw();
         });
+        this.drawButton();
+        this.drawStatusText();
+        
+        
       }
       Game.prototype.resize = function (width, height) {
         this.speed = 3 * this.ratio * this.difficulty;
@@ -242,18 +264,24 @@ define(function () {
             this.message2 = "Score: " + this.score;
           }
 
+          // this.ctx.fillStyle = "white";
+          // this.ctx.fillRect(this.width * 0.5 - 150, this. height/2 -100, 300, 200);
+
+          this.ctx.drawImage(this.woodImage, this.width * 0.5 - 150, this.height / 2 - 125, 300, 200 )
+
+          this.ctx.fillStyle = "black";
           this.ctx.textAlign = 'center';
-          this.ctx.font = '50px Impact';
+          this.ctx.font = '35px Impact';
           // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText(this.message1, this.width * 0.5, this.height * 0.5 - 50)
 
           this.ctx.textAlign = 'center';
-          this.ctx.font = '20px Impact';
+          this.ctx.font = '18px Impact';
           // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText(this.message2, this.width * 0.5, this.height * 0.5 - 20)
 
           this.ctx.textAlign = 'center';
-          this.ctx.font = '20px Impact';
+          this.ctx.font = '18px Impact';
           // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText("Press R to try again", this.width * 0.5, this.height * 0.5 + 10)
         };
@@ -268,6 +296,19 @@ define(function () {
         }
 
         this.ctx.restore();
+      }
+      Game.prototype.drawButton = function () {
+        if (!this.pause) {
+        if (!this.gameOver) {
+          this.ctx.drawImage(this.buttonImage, this.width - 185, this.height - 185, 175, 175);
+          for (let i = 0; i < this.player.energy; i++) {
+            this.ctx.fillStyle = 'white';
+            this.ctx.fillRect(10 + i * this.player.barSize, 40, 20, 15 * this.ratio);
+            this.ctx.fillRect(this.width - 85, this.height - 110 - i * 1.25, 75, 2);
+          }
+        }
+        }
+        
       }
 
       function Player(game) {
@@ -492,8 +533,8 @@ define(function () {
         lastTime = timeStamp;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         game.render(deltaTime);
-        if (!game.pause) requestAnimationFrame(animate);
-        // requestAnimationFrame(animate);
+        // if (!game.pause) requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
         // requestAnimationFrame(animate);
       }
       requestAnimationFrame(animate);
