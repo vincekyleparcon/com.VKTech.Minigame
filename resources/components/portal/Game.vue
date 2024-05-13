@@ -8,7 +8,7 @@
       <img id="PSprite" src='<% .Helpers.AssetPath "icons/UFO2.png" %>'>
       <img id="woodBoard" src='<% .Helpers.AssetPath "backgrounds/wood board.png" %>'>
       <img id="OSprite1" src='<% .Helpers.AssetPath "obstacles/obstacles.png" %>'>
-      <img id="playerButton" src='<% .Helpers.AssetPath "backgrounds/buttons.png" %>'>
+      <img id="playerButton" src='<% .Helpers.AssetPath "backgrounds/buttons2.png" %>'>
 
     </div>
   </div>
@@ -31,6 +31,13 @@
   overflow: hidden;
 }
 
+@media screen and (min-width: 320px) and (max-width: 767px) and (orientation: portrait) {
+  #canvas1 {
+   max-width: 100%;
+    max-height: 50%;
+  }
+}
+
 </style>
 
 <script>
@@ -41,6 +48,9 @@ define(function () {
     mounted: function () {
 
       function Game(canvas, context) {
+
+        var self = this;
+
         this.canvas = canvas;
         this.ctx = context;
         this.width = this.canvas.width;
@@ -51,7 +61,7 @@ define(function () {
         this.player = new Player(this);
         this.obstacles = [];
         this.obstacles2 = [];
-        this.numberOfObstacles = 8;
+        this.numberOfObstacles = 5;
         this.gravity;
         this.speed;
         this.minSpeed;
@@ -66,13 +76,13 @@ define(function () {
         this.woodImage = document.getElementById('woodBoard');
         this.buttonImage = document.getElementById('playerButton');
 
-        var formQuery = { highScore: this.highScore };
+        var formQuery = { highScore: self.highScore };
 
         $flare.http.get('<% .Helpers.UrlForRoute "score.get" %>', formQuery)
           .then(function (response) {
             console.log(response.highScore);
-            this.highScore = response.highScore;
-            console.log(this.highScore);
+            self.highScore = response.highScore;
+            console.log(self.highScore);
           })
           .catch(function (error) {
             console.log(error);
@@ -82,6 +92,10 @@ define(function () {
 
         console.log("Game Started");
         console.log("Created Obstacles: " + this.numberOfObstacles);
+
+        window.addEventListener("orientationchange", function () {
+          window.location.reload();
+        });
 
         window.addEventListener('resize', e => {
           this.resize(e.currentTarget.innerWidth, e.currentTarget.innerHeight);
@@ -124,23 +138,25 @@ define(function () {
           }
 
           if (e.key === "e" && !this.gameOver) {
-            if (this.player.charging) { 
-              this.player.stopCharge(); 
-            } else {
-              this.player.startCharge();
-            }        
+            if (this.player.energy >= this.player.maxEnergu*.75){
+              if (this.player.charging) { 
+                this.player.stopCharge(); 
+              } else {
+                this.player.startCharge();
+              }       
+            } 
           }
         });
       }
       Game.prototype.render = function (deltaTime) {
-
+        // console.log(parseInt(e.clientX));
         
 
-        if(this.obstacles.length <= 5) this.addObstacles();
+        if(this.obstacles.length <= 3) this.addObstacles();
 
 
         
-       
+      //  console.log("Kyle");
         
         if (!this.pause) {
         if (!this.gameOver) this.timer += deltaTime;
@@ -206,7 +222,7 @@ define(function () {
       }
       Game.prototype.addObstacles = function () {
         this.obstacles2 = [];
-        const firstX = 6.4 * this.baseHeight * this.ratio;
+        const firstX = 4.4 * this.baseHeight * this.ratio;
         const obstacleSpacing = 800 * this.ratio;
         for (let i = 0; i < this.numberOfObstacles; i++) {
           this.obstacles.push(new Obstacle(this, firstX + i * obstacleSpacing));
@@ -269,20 +285,16 @@ define(function () {
 
           this.ctx.drawImage(this.woodImage, this.width * 0.5 - 150, this.height / 2 - 125, 300, 200 )
 
-          this.ctx.fillStyle = "black";
           this.ctx.textAlign = 'center';
           this.ctx.font = '35px Impact';
-          // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText(this.message1, this.width * 0.5, this.height * 0.5 - 50)
 
           this.ctx.textAlign = 'center';
           this.ctx.font = '18px Impact';
-          // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText(this.message2, this.width * 0.5, this.height * 0.5 - 20)
 
           this.ctx.textAlign = 'center';
           this.ctx.font = '18px Impact';
-          // this.ctx.fillStyle = 'firebrick';
           this.ctx.fillText("Press R to try again", this.width * 0.5, this.height * 0.5 + 10)
         };
         
@@ -315,10 +327,10 @@ define(function () {
         this.game = game;
         this.x = 20;
         this.y;
-        this.spriteWidth = 200;
-        this.spriteHeight = 200;
-        this.width = 200;
-        this.height = 200;
+        this.spriteWidth = 75;
+        this.spriteHeight = 75;
+        this.width = 50;
+        this.height = 50;
         this.speedY;
         this.minSpeed;
         this.maxSpeed;
@@ -336,11 +348,11 @@ define(function () {
         this.invulnerable = false;
       }
       Player.prototype.draw = function () {
-        //this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
+        // this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
         this.game.ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
         this.game.ctx.beginPath();
         this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
-       // this.game.ctx.stroke();
+        if (this.charging) this.game.ctx.stroke();
       }
       Player.prototype.update = function () {
         this.handleEnergy();
@@ -399,6 +411,7 @@ define(function () {
         }
       }
       Player.prototype.startCharge = function () {
+   
         this.charging = true;
         this.game.speed = this.game.maxSpeed;
       }
@@ -409,6 +422,15 @@ define(function () {
       Player.prototype.isInvulnerable = function (){
         if (this.charging){
           return true
+        }
+      }
+      Player.prototype.shield = function () {
+        //this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
+        // this.game.ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
+          if (this.invulnerable){
+          this.game.ctx.beginPath();
+          this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
+          this.game.ctx.stroke();
         }
       }
 
@@ -425,24 +447,24 @@ define(function () {
       }
       Background.prototype.update = function () {
         if(this.game.gameOver){
-          this.game.speed = 0.5;
+          this.game.speed = 0.2;
         }
 
-        this.x -= this.game.speed * 2;
+        this.x -= this.game.speed * 1;
         if (this.x <= -this.scaledWidth) this.x = 0;
-        this.x2 -= this.game.speed * 1;
+        this.x2 -= this.game.speed * 0.5;
         if (this.x2 <= -this.scaledWidth) this.x2 = 0;
       }
       Background.prototype.draw = function () {
         this.game.ctx.drawImage(this.image2, this.x2, 0, this.scaledWidth, this.scaledHeight);
         this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
         if (this.game.canvas.width >= this.scaledWidth) {
-          this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth * 2 - 2, 0, this.scaledWidth, this.scaledHeight);
+          this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
         }
         this.game.ctx.drawImage(this.image, this.x, 0, this.scaledWidth, this.scaledHeight);
         this.game.ctx.drawImage(this.image, this.x + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
         if (this.game.canvas.width >= this.scaledWidth) {
-          this.game.ctx.drawImage(this.image, this.x + this.scaledWidth * 2 - 2, 0, this.scaledWidth, this.scaledHeight);
+          this.game.ctx.drawImage(this.image, this.x + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
         }
       }
       Background.prototype.resize = function () {
@@ -456,8 +478,10 @@ define(function () {
         this.game = game;
         this.spriteWidth = 200;
         this.spriteHeight = 200;
-        this.scaledWidth = this.spriteWidth * this.game.ratio;
-        this.scaledHeight = this.spriteHeight * this.game.ratio;
+        this.width = 120;
+        this.height = 120;
+        this.scaledWidth = this.width * this.game.ratio;
+        this.scaledHeight = this.height * this.game.ratio;
         this.x = x;
         this.y = this.game.height * (0.5 * Math.random());
         this.collisionX;
@@ -474,7 +498,7 @@ define(function () {
       
         
         this.y += this.speedY;
-        this.x -= this.game.speed * 2.5;
+        this.x -= this.game.speed * 1.5;
 
         if (!this.game.gameOver){                   
           this.collisionY = this.y + this.scaledHeight * 0.5;
@@ -507,14 +531,14 @@ define(function () {
       }
       Obstacle.prototype.draw = function () {
         // this.game.ctx.fillRect(this.x, this.y, this.scaledWidth, this.scaledHeight);
-        this.game.ctx.drawImage(this.image, 0, this.randomPic * this.spriteHeight, this.spriteWidth, this.spriteHeight, this.x, this.y, this.scaledWidth, this.scaledHeight);
+        this.game.ctx.drawImage(this.image, 0, this.randomPic * this.spriteHeight, this.spriteHeight, this.spriteHeight, this.x, this.y, this.scaledWidth, this.scaledHeight);
         this.game.ctx.beginPath();
         this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
         //this.game.ctx.stroke();
       }
       Obstacle.prototype.resize = function () {
-        this.scaledWidth = this.spriteWidth * this.game.ratio;
-        this.scaledHeight = this.spriteHeight * this.game.ratio;
+        this.scaledWidth = this.width * this.game.ratio;
+        this.scaledHeight = this.height * this.game.ratio;
       }
       Obstacle.prototype.isOffScreen = function () {
         return this.x < -this.scaledWidth;
