@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div id="canvas-container">
     <canvas id="canvas1"></canvas>
 
     <div class="assets">
-      <img id="background" src='<% .Helpers.AssetPath "backgrounds/background trees.png" %>'>
-      <img id="background2" src='<% .Helpers.AssetPath "backgrounds/background sky.png" %>'>
+      <img id="background" src='<% .Helpers.AssetPath "backgrounds/background trees with border.png" %>'>
+      <img id="background2" src='<% .Helpers.AssetPath "backgrounds/background sky dark.png" %>'>
       <img id="PSprite" src='<% .Helpers.AssetPath "icons/UFO2.png" %>'>
       <img id="woodBoard" src='<% .Helpers.AssetPath "backgrounds/wood board.png" %>'>
       <img id="OSprite1" src='<% .Helpers.AssetPath "obstacles/obstacles.png" %>'>
@@ -15,27 +15,24 @@
 </template>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-}
-
-#canvas1 {
-  position: fixed;
-  top: 0;
-  left: 0;
-  max-width: 100%;
-  max-height: 100%;
+body,
+html {
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
-@media screen and (min-width: 320px) and (max-width: 767px) and (orientation: portrait) {
-  #canvas1 {
-   max-width: 100%;
-    /* max-height: 50%; */
-  }
+#canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#canvas1 {
+  width: 100%;
+  height: 100%;
 }
 
 </style>
@@ -73,7 +70,7 @@ define(function () {
         this.timer = 0;
         this.pause = false;
         this.submitting = true; 
-        this.difficulty = 1;  
+        this.difficulty = 0.8;  
         this.woodImage = document.getElementById('woodBoard');
         this.buttonImage = document.getElementById('playerButton');
 
@@ -368,13 +365,16 @@ define(function () {
         if (!this.isTouchingBottom()) {
           this.speedY += this.game.gravity;
         }
+        if (this.isTouchingTop()) {
+          this.speedY = this.flapSpeed*0.5;
+        }
         // bottom boundary
         if (this.isTouchingBottom() && !this.game.gameOver) {          
 
          this.flap(0.6);
 
         }
-
+       
         if(this.game.gameOver){
           if (this.x >= -300){
           this.x -= 1;
@@ -394,10 +394,10 @@ define(function () {
         // this.collisionY = this.y + this.height * 0.5;
       }
       Player.prototype.isTouchingBottom = function () {
-        return this.y >= this.game.height - this.height * 1.05;
+        return this.y >= this.game.height - this.game.height*0.32;
       }
       Player.prototype.isTouchingTop = function () {
-        return this.y <= -this.game.height * 0.1;
+        return this.y <= this.game.height * 0.1;
       }
       Player.prototype.flap = function (x) {
         // this.stopCharge();
@@ -449,6 +449,7 @@ define(function () {
         this.height = this.game.baseHeight;
         this.scaledWidth;
         this.scaledHeight;
+        this.y;
         this.x;
         this.x2;
       }
@@ -463,20 +464,21 @@ define(function () {
         if (this.x2 <= -this.scaledWidth) this.x2 = 0;
       }
       Background.prototype.draw = function () {
-        this.game.ctx.drawImage(this.image2, this.x2, 0, this.scaledWidth, this.scaledHeight);
-        this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
+        this.game.ctx.drawImage(this.image2, this.x2, this.y, this.scaledWidth, this.scaledHeight);
+        this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth - 1, this.y, this.scaledWidth, this.scaledHeight);
         if (this.game.canvas.width >= this.scaledWidth) {
-          this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
+          this.game.ctx.drawImage(this.image2, this.x2 + this.scaledWidth - 1, this.y, this.scaledWidth, this.scaledHeight);
         }
-        this.game.ctx.drawImage(this.image, this.x, 0, this.scaledWidth, this.scaledHeight);
-        this.game.ctx.drawImage(this.image, this.x + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
+        this.game.ctx.drawImage(this.image, this.x, this.y, this.scaledWidth, this.scaledHeight);
+        this.game.ctx.drawImage(this.image, this.x + this.scaledWidth - 1, this.y, this.scaledWidth, this.scaledHeight);
         if (this.game.canvas.width >= this.scaledWidth) {
-          this.game.ctx.drawImage(this.image, this.x + this.scaledWidth - 1, 0, this.scaledWidth, this.scaledHeight);
+          this.game.ctx.drawImage(this.image, this.x + this.scaledWidth - 1, this.y, this.scaledWidth, this.scaledHeight);
         }
       }
       Background.prototype.resize = function () {
         this.scaledWidth = this.width * this.game.ratio;
         this.scaledHeight = this.height * this.game.ratio;
+        this.y = 0;
         this.x = 0;
         this.x2 = 0;
       }
@@ -490,7 +492,7 @@ define(function () {
         this.scaledWidth = this.width * this.game.ratio;
         this.scaledHeight = this.height * this.game.ratio;
         this.x = x;
-        this.y = this.game.height * (0.5 * Math.random());
+        this.y = this.game.height * 0.2 + this.game.height * (0.4 * Math.random());
         this.collisionX;
         this.collisionY;
         this.speedY = Math.random() < 0.5 ? -1 : 1;
@@ -509,7 +511,7 @@ define(function () {
 
         if (!this.game.gameOver){                   
           this.collisionY = this.y + this.scaledHeight * 0.5;
-          if (this.y <= this.scaledHeight * -0.2 || this.y >= this.game.height - this.scaledHeight) {
+          if (this.y <= this.game.height * 0.1 || this.y >= this.game.height * 0.65) {
             this.speedY *= -1;
           }
         } else { this.y += this.speedY * 2}
