@@ -34,7 +34,7 @@
 @media screen and (min-width: 320px) and (max-width: 767px) and (orientation: portrait) {
   #canvas1 {
    max-width: 100%;
-    max-height: 50%;
+    /* max-height: 50%; */
   }
 }
 
@@ -46,6 +46,7 @@ define(function () {
     template: template,
 
     mounted: function () {
+      // window.location.reload();
 
       function Game(canvas, context) {
 
@@ -87,7 +88,7 @@ define(function () {
           .catch(function (error) {
             console.log(error);
           });
-
+        
         this.resize(window.innerWidth, window.innerHeight);
 
         console.log("Game Started");
@@ -104,6 +105,8 @@ define(function () {
         this.canvas.addEventListener('mousedown', e => {
           if (!this.gameOver){
             this.player.flap(1);
+          } else if (this.gameOver) {
+            window.location.reload();
           }
           console.log("mousedown");    
         });
@@ -163,22 +166,16 @@ define(function () {
           this.background.update();
           this.player.update();
           
-        };
-        
+        };        
 
-        this.background.draw();
-        
+        this.background.draw();       
         this.player.draw();
-
        
-
         this.obstacles.forEach(obstacle => {
           if (!this.pause) obstacle.update();
           obstacle.draw();
         });
-        this.drawButton();
         this.drawStatusText();
-        
         
       }
       Game.prototype.resize = function (width, height) {
@@ -242,11 +239,21 @@ define(function () {
         this.ctx.save();
 
         this.ctx.font = '25px Impact';
-        this.ctx.fillText('Score: ' + this.score, this.width -10, 55);
+        // this.ctx.fillText('Score: ' + this.score, this.width -10, 55);
         this.ctx.fillText('High Score: ' + this.highScore, this.width - 10, 30);
 
         this.ctx.textAlign = 'left';
         this.ctx.fillText('Time: ' + this.formatTimer(this.timer), 10, 30);
+
+        if (!this.gameOver) {
+          this.ctx.textAlign = 'center';
+          this.ctx.font = '50px Impact';
+          this.ctx.strokeStyle = 'black';
+          this.ctx.fillStyle = 'white';
+          this.ctx.strokeText(this.score, this.width * 0.5, this.height * 0.3)
+          // this.ctx.font = '52px Impact';
+          this.ctx.fillText(this.score, this.width * 0.5, this.height * 0.3)
+        }
 
         this.difficulty = 1 + this.timer / 60000;
         if (!this.player.charging) { this.speed = 3 * this.ratio * this.difficulty; }
@@ -310,16 +317,16 @@ define(function () {
         this.ctx.restore();
       }
       Game.prototype.drawButton = function () {
-        if (!this.pause) {
-        if (!this.gameOver) {
-          this.ctx.drawImage(this.buttonImage, this.width - 185, this.height - 185, 175, 175);
-          for (let i = 0; i < this.player.energy; i++) {
-            this.ctx.fillStyle = 'white';
-            this.ctx.fillRect(10 + i * this.player.barSize, 40, 20, 15 * this.ratio);
-            this.ctx.fillRect(this.width - 85, this.height - 110 - i * 1.25, 75, 2);
-          }
-        }
-        }
+        // if (!this.pause) {
+        // if (!this.gameOver) {
+        //   this.ctx.drawImage(this.buttonImage, this.width - 185, this.height - 185, 175, 175);
+        //   for (let i = 0; i < this.player.energy; i++) {
+        //     this.ctx.fillStyle = 'white';
+        //     this.ctx.fillRect(10 + i * this.player.barSize, 40, 20, 15 * this.ratio);
+        //     this.ctx.fillRect(this.width - 85, this.height - 110 - i * 1.25, 75, 2);
+        //   }
+        // }
+        // }
         
       }
 
@@ -424,15 +431,15 @@ define(function () {
           return true
         }
       }
-      Player.prototype.shield = function () {
-        //this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
-        // this.game.ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
-          if (this.invulnerable){
-          this.game.ctx.beginPath();
-          this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
-          this.game.ctx.stroke();
-        }
-      }
+      // Player.prototype.shield = function () {
+      //   //this.game.ctx.strokeRect(this.x, this.y, this.width, this.height);
+      //   // this.game.ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
+      //     if (this.invulnerable){
+      //     this.game.ctx.beginPath();
+      //     this.game.ctx.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
+      //     this.game.ctx.stroke();
+      //   }
+      // }
 
       function Background(game) {
         this.game = game;
@@ -546,8 +553,8 @@ define(function () {
 
       const canvas = document.getElementById('canvas1');
       const ctx = canvas.getContext('2d');
-      canvas.width = 720;
-      canvas.height = 720;
+      canvas.width = 300;
+      canvas.height = 300;
       const game = new Game(canvas, ctx);
       game.render(0);
 
