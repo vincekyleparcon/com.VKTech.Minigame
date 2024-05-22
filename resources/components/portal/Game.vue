@@ -1,6 +1,8 @@
 <template>
   <div id="canvas-container">
     <canvas id="canvas1"></canvas>
+    <div id="highScore-text">0</div>
+    <div id="score-text">0</div>
 
     <div class="assets">
       <img id="background" src='<% .Helpers.AssetPath "backgrounds/background trees with border.png" %>'>
@@ -9,6 +11,9 @@
       <img id="woodBoard" src='<% .Helpers.AssetPath "backgrounds/wood board.png" %>'>
       <img id="OSprite1" src='<% .Helpers.AssetPath "obstacles/obstacles.png" %>'>
       <img id="playerButton" src='<% .Helpers.AssetPath "backgrounds/buttons2.png" %>'>
+      <button type="image" class="menu-gameOver">
+        <img id="greenButton" src='<% .Helpers.AssetPath "icons/green.png" %>' alt="Click me!">
+      </button>
 
     </div>
   </div>
@@ -34,6 +39,36 @@ html {
   width: 100%;
   height: 100%;
 }
+
+ #highScore-text {
+   position: absolute;
+   top: 1%;
+   right: 2%;
+   /* transform: translate(-50%, -50%); */
+   font-size: 2.5vh;
+   color: white;
+   /* text-shadow: 1px 1px 2px black; */
+ }
+
+ #score-text {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  font-size: 8vh;
+  color: white;
+  transform: translate(-50%, -50%);
+  text-shadow: 1.5px 1.5px 2px black;
+  background: transparent;
+  text-align: center;
+ }
+
+ #greenButton {
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   height: 10vh;
+   width: 20vh;
+ }
 
 </style>
 
@@ -73,6 +108,9 @@ define(function () {
         this.difficulty = 0.8;  
         this.woodImage = document.getElementById('woodBoard');
         this.buttonImage = document.getElementById('playerButton');
+        this.highScoreDisplay = document.getElementById('highScore-text');
+        this.scoreDisplay = document.getElementById('score-text');
+        this.greenButton = document.getElementById('greenButton');
 
         var formQuery = { highScore: self.highScore };
 
@@ -149,22 +187,24 @@ define(function () {
         });
       }
       Game.prototype.render = function (deltaTime) {
-        // console.log(parseInt(e.clientX));
-        
 
-        if(this.obstacles.length <= 3) this.addObstacles();
+        if (!this.gameOver) {
+          //create obstacle loop
+          if (this.obstacles.length <= 3) this.addObstacles();
 
+          if (!this.pause) {
+            this.timer += deltaTime;
+             };    
 
-        
-      //  console.log("Kyle");
-        
-        if (!this.pause) {
-        if (!this.gameOver) this.timer += deltaTime;
-          this.background.update();
-          this.player.update();
-          
-        };        
+        };    
 
+        if (this.gameOver) {
+          //Menu during Game Over
+          // this.gameOverMenu();
+        };
+   
+        this.background.update();
+        this.player.update();
         this.background.draw();       
         this.player.draw();
        
@@ -179,7 +219,6 @@ define(function () {
         this.speed = 3 * this.ratio * this.difficulty;
         this.canvas.width = width;
         this.canvas.height = height;
-        // this.ctx.fillStyle = 'green';
         this.ctx.font = '20px Impact'
         this.ctx.textAlign = 'right';
 
@@ -235,22 +274,27 @@ define(function () {
       Game.prototype.drawStatusText = function () {
         this.ctx.save();
 
-        this.ctx.font = '25px Impact';
-        // this.ctx.fillText('Score: ' + this.score, this.width -10, 55);
-        this.ctx.fillText('High Score: ' + this.highScore, this.width - 10, 30);
+        this.highScoreDisplay.innerText = "High Score: " + this.highScore;
+        this.scoreDisplay.innerText = this.score
 
-        this.ctx.textAlign = 'left';
-        this.ctx.fillText('Time: ' + this.formatTimer(this.timer), 10, 30);
+        if (this.gameOver) this.scoreDisplay.style.display = "none";
 
-        if (!this.gameOver) {
-          this.ctx.textAlign = 'center';
-          this.ctx.font = '50px Impact';
-          this.ctx.strokeStyle = 'black';
-          this.ctx.fillStyle = 'white';
-          this.ctx.strokeText(this.score, this.width * 0.5, this.height * 0.3)
-          // this.ctx.font = '52px Impact';
-          this.ctx.fillText(this.score, this.width * 0.5, this.height * 0.3)
-        }
+        // this.ctx.font = '25px Impact';
+        // // this.ctx.fillText('Score: ' + this.score, this.width -10, 55);
+        // this.ctx.fillText('High Score: ' + this.highScore, this.width - 10, 30);
+
+        // this.ctx.textAlign = 'left';
+        // this.ctx.fillText('Time: ' + this.formatTimer(this.timer), 10, 30);
+
+        // if (!this.gameOver) {
+        //   this.ctx.textAlign = 'center';
+        //   this.ctx.font = '50px Impact';
+        //   this.ctx.strokeStyle = 'black';
+        //   this.ctx.fillStyle = 'white';
+        //   this.ctx.strokeText(this.score, this.width * 0.5, this.height * 0.3)
+        //   // this.ctx.font = '52px Impact';
+        //   this.ctx.fillText(this.score, this.width * 0.5, this.height * 0.3)
+        // }
 
         this.difficulty = 1 + this.timer / 60000;
         if (!this.player.charging) { this.speed = 3 * this.ratio * this.difficulty; }
@@ -303,29 +347,20 @@ define(function () {
         };
         
         
-        for (let i = 0; i < this.player.energy; i++){   
-          this.ctx.fillStyle = 'red'
-          if (this.player.energy >= this.player.maxEnergu * 0.5) this.ctx.fillStyle = 'orange';
-          if (this.player.energy >= this.player.maxEnergu * 0.75) this.ctx.fillStyle = 'yellow';
-          if (this.player.energy >= this.player.maxEnergu) this.ctx.fillStyle = 'green';    
-          this.ctx.fillRect(10 + i*this.player.barSize, 40, 20, 15 * this.ratio);
-        }
+        // for (let i = 0; i < this.player.energy; i++){   
+        //   this.ctx.fillStyle = 'red'
+        //   if (this.player.energy >= this.player.maxEnergu * 0.5) this.ctx.fillStyle = 'orange';
+        //   if (this.player.energy >= this.player.maxEnergu * 0.75) this.ctx.fillStyle = 'yellow';
+        //   if (this.player.energy >= this.player.maxEnergu) this.ctx.fillStyle = 'green';    
+        //   this.ctx.fillRect(10 + i*this.player.barSize, 40, 20, 15 * this.ratio);
+        // }
 
         this.ctx.restore();
       }
-      Game.prototype.drawButton = function () {
-        // if (!this.pause) {
-        // if (!this.gameOver) {
-        //   this.ctx.drawImage(this.buttonImage, this.width - 185, this.height - 185, 175, 175);
-        //   for (let i = 0; i < this.player.energy; i++) {
-        //     this.ctx.fillStyle = 'white';
-        //     this.ctx.fillRect(10 + i * this.player.barSize, 40, 20, 15 * this.ratio);
-        //     this.ctx.fillRect(this.width - 85, this.height - 110 - i * 1.25, 75, 2);
-        //   }
-        // }
-        // }
-        
+      Game.prototype.gameOverMenu = function () {
+        console.log("Game Over Menu")
       }
+     
 
       function Player(game) {
         this.game = game;
