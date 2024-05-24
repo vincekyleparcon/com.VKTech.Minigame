@@ -2,7 +2,6 @@
   <div id="canvas-container">
     <canvas id="canvas1"></canvas>
     <div id="highScore-text">0</div>
-    <div id="score-text">0</div>
 
     <div class="assets">
       <img id="background" src='<% .Helpers.AssetPath "backgrounds/background trees with border.png" %>'>
@@ -11,10 +10,17 @@
       <img id="woodBoard" src='<% .Helpers.AssetPath "backgrounds/wood board.png" %>'>
       <img id="OSprite1" src='<% .Helpers.AssetPath "obstacles/obstacles.png" %>'>
       <img id="playerButton" src='<% .Helpers.AssetPath "backgrounds/buttons2.png" %>'>
-      <button type="image" class="menu-gameOver">
-        <img id="greenButton" src='<% .Helpers.AssetPath "icons/green.png" %>' alt="Click me!">
+      <button type="image">
+        <img id="pause-btn" src='<% .Helpers.AssetPath "icons/PauseIcon.png" %>' alt="Pause">
       </button>
-
+      <button type="image">
+        <img id="score-board" src='<% .Helpers.AssetPath "backgrounds/ScoreBoard.png" %>' alt="Score Board">
+      </button>
+      <button type="image">
+        <img id="pause-board" src='<% .Helpers.AssetPath "backgrounds/PauseBoard.png" %>' alt="Pause">
+      </button>
+      <div id="score-text">0</div>
+      <div id="score-over">0</div>
     </div>
   </div>
 </template>
@@ -42,8 +48,8 @@ html {
 
  #highScore-text {
    position: absolute;
-   top: 1%;
-   right: 2%;
+   top: 2.5%;
+   right: 3%;
    /* transform: translate(-50%, -50%); */
    font-size: 2.5vh;
    color: white;
@@ -60,15 +66,51 @@ html {
   text-shadow: 1.5px 1.5px 2px black;
   background: transparent;
   text-align: center;
+  /* visibility: "visible"; */
  }
 
- #greenButton {
+ #score-over {
    position: absolute;
-   top: 50%;
+   top: 38%;
    left: 50%;
-   height: 10vh;
-   width: 20vh;
+   font-size: 7vh;
+   color: black;
+   transform: translate(-50%, -50%);
+   background: transparent;
+   text-align: center;
+  visibility: hidden;
  }
+
+ #score-board {
+   position: absolute;
+   top: 45%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   height: 35vh;
+   width: 35vh;
+  visibility: hidden;
+ }
+
+  #pause-board {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 35vh;
+    width: 35vh;
+    visibility: hidden;
+  }
+
+  #pause-btn {
+    position: absolute;
+    top: 2%;
+    left: 3%;
+    height: 5vh;
+    width: 5vh;
+    visibility: visible;
+    /* transform: rotate(0deg); */
+
+  }
 
 </style>
 
@@ -106,11 +148,16 @@ define(function () {
         this.pause = false;
         this.submitting = true; 
         this.difficulty = 0.8;  
+        // this.turn = 1;
+
         this.woodImage = document.getElementById('woodBoard');
         this.buttonImage = document.getElementById('playerButton');
         this.highScoreDisplay = document.getElementById('highScore-text');
         this.scoreDisplay = document.getElementById('score-text');
-        this.greenButton = document.getElementById('greenButton');
+        this.scoreBoard = document.getElementById('score-board');
+        this.pauseBoard = document.getElementById('pause-board');
+        this.boardScore = document.getElementById('score-over');
+        this.pauseBtn = document.getElementById('pause-btn');
 
         var formQuery = { highScore: self.highScore };
 
@@ -133,6 +180,18 @@ define(function () {
           window.location.reload();
         });
 
+        this.scoreBoard.addEventListener("click", function () {
+          window.location.reload();
+        });
+
+        this.pauseBtn.addEventListener("click", function () {
+          self.pauseGame();
+        });
+
+        this.pauseBoard.addEventListener("click", function (){
+          self.pauseGame();
+        });
+
         window.addEventListener('resize', e => {
           this.resize(e.currentTarget.innerWidth, e.currentTarget.innerHeight);
         });
@@ -141,16 +200,9 @@ define(function () {
           if (!this.gameOver){
             this.player.flap(1);
           } else if (this.gameOver) {
-            window.location.reload();
+            // window.location.reload();
           }
           console.log("mousedown");    
-        });
-
-        document.addEventListener('keydown', e => {
-          if (e.key === " " && !this.gameOver) {
-            this.player.flap(1);
-            console.log("spacebar pressed");
-          }
         });
 
         document.addEventListener('touchmove', function (e) {
@@ -163,16 +215,13 @@ define(function () {
             window.location.reload();
           }
 
-          if (e.key === "p" && !this.gameOver) {
-            console.log("paused pressed");
+          if (e.key === " " && !this.gameOver) {
+            this.player.flap(1);
+            console.log("spacebar pressed");
+          }
 
-            if (this.pause) {
-              this.pause = false;
-              // requestAnimationFrame(animate);
-            } else {
-              this.pause = true;
-            }
-            console.log(this.pause);
+          if (e.key === "p" && !this.gameOver) {
+           this.pauseGame();
           }
 
           if (e.key === "e" && !this.gameOver) {
@@ -188,26 +237,34 @@ define(function () {
       }
       Game.prototype.render = function (deltaTime) {
 
+        // this.turn += 1;
+        // this.pauseBtn.style.transform = "rotate(" + (this.turn % 360) + "deg)"
+
         if (!this.gameOver) {
           //create obstacle loop
           if (this.obstacles.length <= 3) this.addObstacles();
 
           if (!this.pause) {
             this.timer += deltaTime;
+            
              };    
 
         };    
 
         if (this.gameOver) {
           //Menu during Game Over
-          // this.gameOverMenu();
+          this.gameOverMenu();
+          this.pauseBtn.style.visibility = "hidden";
         };
-   
-        this.background.update();
-        this.player.update();
-        this.background.draw();       
+
+        if (!this.pause){
+          this.background.update();
+          this.player.update();
+        }
+
+        this.background.draw();
         this.player.draw();
-       
+
         this.obstacles.forEach(obstacle => {
           if (!this.pause) obstacle.update();
           obstacle.draw();
@@ -276,8 +333,7 @@ define(function () {
 
         this.highScoreDisplay.innerText = "High Score: " + this.highScore;
         this.scoreDisplay.innerText = this.score
-
-        if (this.gameOver) this.scoreDisplay.style.display = "none";
+        if (this.gameOver) this.scoreDisplay.style.visibility = "hidden";
 
         // this.ctx.font = '25px Impact';
         // // this.ctx.fillText('Score: ' + this.score, this.width -10, 55);
@@ -298,69 +354,36 @@ define(function () {
 
         this.difficulty = 1 + this.timer / 60000;
         if (!this.player.charging) { this.speed = 3 * this.ratio * this.difficulty; }
-        
       
-        if (this.gameOver || this.pause) {
-
-          if (this.player.collided){
-            this.message1 = "Game Over";
-            this.message2 = "Score: " + this.score;
-
-            var formData = { 
-              score: this.score
-            };
-
-          if (this.submitting) {
-
-            $flare.http.post('<% .Helpers.UrlForRoute "score.save" %>', formData)
-              .then(function (response) {
-                console.log(response);
-              })
-              .catch(function (error) {
-                console.log(error);
-              });
-              this.submitting = false;
-
-            }
-
-          } else if (this.pause) {
-            this.message1 = "PAUSED";
-            this.message2 = "Score: " + this.score;
-          }
-
-          // this.ctx.fillStyle = "white";
-          // this.ctx.fillRect(this.width * 0.5 - 150, this. height/2 -100, 300, 200);
-
-          this.ctx.drawImage(this.woodImage, this.width * 0.5 - 150, this.height / 2 - 125, 300, 200 )
-
-          this.ctx.textAlign = 'center';
-          this.ctx.font = '35px Impact';
-          this.ctx.fillText(this.message1, this.width * 0.5, this.height * 0.5 - 50)
-
-          this.ctx.textAlign = 'center';
-          this.ctx.font = '18px Impact';
-          this.ctx.fillText(this.message2, this.width * 0.5, this.height * 0.5 - 20)
-
-          this.ctx.textAlign = 'center';
-          this.ctx.font = '18px Impact';
-          this.ctx.fillText("Press R to try again", this.width * 0.5, this.height * 0.5 + 10)
-        };
-        
-        
-        // for (let i = 0; i < this.player.energy; i++){   
-        //   this.ctx.fillStyle = 'red'
-        //   if (this.player.energy >= this.player.maxEnergu * 0.5) this.ctx.fillStyle = 'orange';
-        //   if (this.player.energy >= this.player.maxEnergu * 0.75) this.ctx.fillStyle = 'yellow';
-        //   if (this.player.energy >= this.player.maxEnergu) this.ctx.fillStyle = 'green';    
-        //   this.ctx.fillRect(10 + i*this.player.barSize, 40, 20, 15 * this.ratio);
-        // }
-
+  
         this.ctx.restore();
       }
       Game.prototype.gameOverMenu = function () {
-        console.log("Game Over Menu")
+        this.highScoreDisplay.style.visibility = "hidden";
+        this.boardScore.style.visibility = "visible";
+        this.boardScore.innerText = this.score;
+        this.scoreBoard.style.visibility = "visible";
       }
-     
+      Game.prototype.pauseGame = function () {
+        console.log("paused pressed");
+
+        if (this.pause) {
+          this.pause = false;
+          this.pauseBtn.style.visibility = "visible";
+          this.pauseBoard.style.visibility = "hidden";
+          this.scoreDisplay.style.visibility = "visible";
+          this.boardScore.style.visibility = "hidden"
+          // requestAnimationFrame(animate);
+        } else {
+          this.pause = true;
+          this.pauseBoard.style.visibility = "visible";
+          this.pauseBtn.style.visibility = "hidden";
+          this.scoreDisplay.style.visibility = "hidden";
+          this.boardScore.innerText = this.score;
+          this.boardScore.style.visibility = "visible"
+        }
+        console.log(this.pause);   
+      }
 
       function Player(game) {
         this.game = game;
@@ -539,7 +562,6 @@ define(function () {
     
       }
       Obstacle.prototype.update = function () {
-      
         
         this.y += this.speedY;
         this.x -= this.game.speed * 1.5;
