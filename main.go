@@ -1,3 +1,5 @@
+//go:build !mono
+
 package main
 
 import (
@@ -9,14 +11,14 @@ import (
 	sdkplugin "github.com/flarehotspot/sdk/api/plugin"
 )
 
-type MyData struct {
-	Highscore int            `json:"highscore"`
-	Records   map[string]int `json:"records"`
-}
+const (
+	cfgKey = "game_record"
+)
 
-type MyScore struct {
-	HighScore int `json:"highScore"`
-	Score     int `json:"score"`
+type Player struct {
+	MacAddr string `json:"mac"`
+	Name    string `json:"name"`
+	Score   string `json:"score"`
 }
 
 func main() {}
@@ -42,41 +44,32 @@ func Init(api sdkplugin.PluginApi) {
 	})
 
 	Route := api.Http().HttpRouter().PluginRouter().Post("/score/save", func(w http.ResponseWriter, r *http.Request) {
-		var data MyScore
+		var data Player
 		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 			api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		my_key := "my_score"
-
-		// var oldData MyData
-		// err := api.Config().Plugin(my_key).Get(&oldData)
-		// if err != nil {
-		// 	api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
-		// 	return
-		// }
-
-		var oldData MyScore
-		err := api.Config().Plugin(my_key).Get(&oldData)
+		clnt, err := api.Http().GetClientDevice(r)
 		if err != nil {
 			api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if data.Score >= oldData.HighScore {
-			data.HighScore = data.Score
-		} else {
-			data.HighScore = oldData.HighScore
+		data.MacAddr = clnt.MacAddr()
+
+		var records []Player
+		err = api.Config().Custom(cfgKey).Get(&records)
+		if err != nil {
+			api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		// score, ok := oldData.Records[data.Name]
-		// if ok {
-		// 	oldData.Records[data.Name] = data.Score
-		// 	err = api.Config().Plugin(my_key).Save(oldData)
-		// }
+		records = append(records, data)
+		// Sort the records highest to lowest score
+		SortPlayers(records)
 
-		if err := api.Config().Plugin(my_key).Save(data); err != nil {
+		if err := api.Config().Custom(cfgKey).Save(records); err != nil {
 			api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -87,20 +80,30 @@ func Init(api sdkplugin.PluginApi) {
 
 	RouteGet := api.Http().HttpRouter().PluginRouter().Get("/score/get", func(w http.ResponseWriter, r *http.Request) {
 
-		my_key := "my_score"
-
-		var oldData MyScore
-		err := api.Config().Plugin(my_key).Get(&oldData)
+		var records []Player
+		err := api.Config().Custom(cfgKey).Get(&records)
 		if err != nil {
-			api.Http().VueResponse().Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			records = []Player{}
 		}
 
-		api.Http().VueResponse().Json(w, oldData, http.StatusOK)
+        SortPlayers(records)
+
+		api.Http().VueResponse().Json(w, records, http.StatusOK)
 
 	})
 
 	Route.Name("score.save")
 	RouteGet.Name("score.get")
+}
 
+// sort players from highest score to lowest
+func SortPlayers(players []Player) []Player {
+	for i := 0; i < len(players); i++ {
+		for j := i + 1; j < len(players); j++ {
+			if players[i].Score < players[j].Score {
+				players[i], players[j] = players[j], players[i]
+			}
+		}
+	}
+	return players
 }
