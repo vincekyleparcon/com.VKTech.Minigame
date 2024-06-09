@@ -14,13 +14,37 @@
         <img id="pause-btn" src='<% .Helpers.AssetPath "icons/PauseIcon.png" %>' alt="Pause">
       </button>
       <button type="image">
-        <img id="score-board" src='<% .Helpers.AssetPath "backgrounds/ScoreBoard.png" %>' alt="Score Board">
+        <img id="score-board" src='<% .Helpers.AssetPath "backgrounds/gameOverMenu.png" %>' alt="Score Board">
       </button>
-      <button type="image">
-        <img id="pause-board" src='<% .Helpers.AssetPath "backgrounds/PauseBoard.png" %>' alt="Pause">
+      <button type="image" src='<% .Helpers.AssetPath "backgrounds/rankingButton.png" %>'>
+        <img id="pause-board" src='<% .Helpers.AssetPath "backgrounds/PauseMenu.png" %>' alt="Pause">
       </button>
+
+      <div id="menu-btn" class="image" src='<% .Helpers.AssetPath "backgrounds/PauseMenu.png" %>'>
+        <button type="image">
+          <img id="exit-btn" src='<% .Helpers.AssetPath "buttons/exitButton2.png" %>' alt="Exit">
+        </button>
+        <button type="image">
+          <img id="ranking-btn" src='<% .Helpers.AssetPath "buttons/rankingButton2.png" %>' alt="Exit">
+        </button>
+      </div>
+
       <div id="score-text">0</div>
       <div id="score-over">0</div>
+      <div id="rankers-text">
+        <div id="score-top1">0</div>
+        <div id="score-top2">0</div>
+        <div id="score-top3">0</div>
+      </div>
+
+      <div id="highscore-form">
+        <form @click.prevent="submit">
+          <label id="input-label">Name:</label><br>
+          <input id="input-name" type="text" placeholder="Your name.."><br>
+          <button id="submit-btn" type="submit">Submit</button>
+        </form>
+      </div>
+
     </div>
   </div>
 </template>
@@ -46,17 +70,44 @@ html {
   height: 100%;
 }
 
- #highScore-text {
-   position: absolute;
-   top: 2.5%;
-   right: 3%;
-   /* transform: translate(-50%, -50%); */
-   font-size: 2.5vh;
-   color: white;
-   /* text-shadow: 1px 1px 2px black; */
- }
+#highScore-text {
+  position: absolute;
+  top: 2.5%;
+  right: 3%;
+  /* transform: translate(-50%, -50%); */
+  font-size: 2.5vh;
+  color: white;
+  /* text-shadow: 1px 1px 2px black; */
+}
 
- #score-text {
+#submit-btn {
+  width: 100%;
+  background-color: #04AA6D;
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    margin: 4px 2px;
+    cursor: pointer;
+    visibility: hidden;
+}
+
+#input-name {
+padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  visibility: hidden;
+}
+
+#input-label {
+  color: black;
+  visibility: hidden;
+}
+
+#score-text {
   position: absolute;
   top: 20%;
   left: 50%;
@@ -67,50 +118,118 @@ html {
   background: transparent;
   text-align: center;
   /* visibility: "visible"; */
- }
+}
 
- #score-over {
-   position: absolute;
-   top: 38%;
-   left: 50%;
-   font-size: 7vh;
-   color: black;
-   transform: translate(-50%, -50%);
-   background: transparent;
-   text-align: center;
+#score-over {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  font-size: 7vh;
+  color: black;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  text-align: center;
   visibility: hidden;
- }
+}
 
- #score-board {
-   position: absolute;
-   top: 45%;
-   left: 50%;
-   transform: translate(-50%, -50%);
-   height: 35vh;
-   width: 35vh;
+#score-board {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 35vh;
+  width: 35vh;
   visibility: hidden;
- }
+}
 
-  #pause-board {
+#pause-board {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 35vh;
+  width: 35vh;
+  visibility: hidden;
+}
+
+#pause-btn {
+  position: absolute;
+  top: 2%;
+  left: 3%;
+  height: 5vh;
+  width: 5vh;
+  visibility: visible;
+  /* transform: rotate(0deg); */
+
+}
+
+  #menu-btn {
     position: absolute;
-    top: 45%;
-    left: 50%;
+      top: 45%;
+      left: 50%;
     transform: translate(-50%, -50%);
     height: 35vh;
     width: 35vh;
     visibility: hidden;
   }
 
-  #pause-btn {
+#exit-btn {
+  position: absolute;
+    top: 57.4%;
+    left: 3.3%;
+  height: 4.4vh;
+  width: 16.2vh;
+  visibility: hidden;
+}
+
+#ranking-btn {
+  position: absolute;
+    top: 57.4%;
+    right: 3.3%;
+  height: 4.4vh;
+  width: 16.2vh;
+  visibility: hidden;
+}
+
+#highscore-form {
+  position: absolute;
+    top: 40%;
+    left: 50%;
+  transform: translate(-50%, -50%);
+  visibility: hidden;
+}
+
+  #score-top1, #score-top2, #score-top3 {
     position: absolute;
-    top: 2%;
-    left: 3%;
-    height: 5vh;
-    width: 5vh;
-    visibility: visible;
-    /* transform: rotate(0deg); */
+    top: 36%;
+    left: 50%;
+    font-size: 3.5vh;
+    color: goldenrod;
+    font-weight: 600;
+    transform: translate(-50%, -50%);
+    background: transparent;
+    text-align: center;
+    visibility: hidden;
+  }
+
+  #score-top2 {
+    
+    top: 40.5%;
+    color: black;
+    font-size: 3vh;
+    font-weight: 500;
+  
+  }
+
+  #score-top3 {
+
+    top: 44.5%;
+    color: black;
+    font-size: 2.5vh;
+    font-weight: 500;
 
   }
+
 
 </style>
 
@@ -143,12 +262,26 @@ define(function () {
         this.maxSpeed;
         this.score = 0;
         this.highScore = 0;
+        this.myHighScore = 0;
         this.gameOver;
         this.timer = 0;
         this.pause = false;
         this.submitting = true; 
+        this.showRank = false;
+        this.showGOMenu = false;
+        this.isTopScore = false;
         this.difficulty = 0.8;  
+        this.playerName = "NA";
+        this.data;
         // this.turn = 1;
+
+        this.top1Score = 150;
+        this.top1Name = "Kyle";
+        this.top2Score = 100;
+        this.top2Name = "John";
+        this.top3Score = 50;
+        this.top3Name = "Sara";
+
 
         this.woodImage = document.getElementById('woodBoard');
         this.buttonImage = document.getElementById('playerButton');
@@ -158,19 +291,20 @@ define(function () {
         this.pauseBoard = document.getElementById('pause-board');
         this.boardScore = document.getElementById('score-over');
         this.pauseBtn = document.getElementById('pause-btn');
+        this.rankingBtn = document.getElementById('ranking-btn');
+        this.exitBtn = document.getElementById('exit-btn');
 
-        var formQuery = { highScore: self.highScore };
+        this.scoreTop1 = document.getElementById('score-top1');
+        this.scoreTop2 = document.getElementById('score-top2');
+        this.scoreTop3 = document.getElementById('score-top3');
 
-        $flare.http.get('<% .Helpers.UrlForRoute "score.get" %>', formQuery)
-          .then(function (response) {
-            console.log(response.highScore);
-            self.highScore = response.highScore;
-            console.log(self.highScore);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-        
+        this.scoreTop1.innerText = this.top1Name + ": " + this.top1Score;
+        this.scoreTop2.innerText = this.top2Name + ": " + this.top2Score;
+        this.scoreTop3.innerText = this.top3Name + ": " + this.top3Score;
+
+
+        this.getScore(this.playerName);
+  
         this.resize(window.innerWidth, window.innerHeight);
 
         console.log("Game Started");
@@ -190,6 +324,15 @@ define(function () {
 
         this.pauseBoard.addEventListener("click", function (){
           self.pauseGame();
+        });
+
+        this.rankingBtn.addEventListener("click", function () {
+          // window.location.reload();
+          self.showRanking();
+        });
+
+        this.exitBtn.addEventListener("click", function () {
+          window.location.reload();
         });
 
         window.addEventListener('resize', e => {
@@ -253,8 +396,37 @@ define(function () {
 
         if (this.gameOver) {
           //Menu during Game Over
-          this.gameOverMenu();
-          this.pauseBtn.style.visibility = "hidden";
+
+          if (this.submitting) {
+
+            this.isHighScore();
+
+          if (!this.isTopScore){
+            if (!this.showGOMenu) {
+              this.gameOverMenu();
+              this.showGOMenu = true;
+            }
+            
+            this.pauseBtn.style.visibility = "hidden";
+
+            var formData = {
+              Score: this.score,
+            };
+              $flare.http.post('<% .Helpers.UrlForRoute "score.save" %>', formData)
+                .then(function (response) {
+                  console.log(response);
+                })
+                .catch(function (error) {
+                  console.log(error);
+                });
+              this.submitting = false;
+            } else {
+
+
+
+            }
+          }
+
         };
 
         if (!this.pause){
@@ -331,8 +503,8 @@ define(function () {
       Game.prototype.drawStatusText = function () {
         this.ctx.save();
 
-        this.highScoreDisplay.innerText = "High Score: " + this.highScore;
-        this.scoreDisplay.innerText = this.score
+        this.highScoreDisplay.innerText = "High Score: " + self.highScore;
+        this.scoreDisplay.innerText = this.score;
         if (this.gameOver) this.scoreDisplay.style.visibility = "hidden";
 
         // this.ctx.font = '25px Impact';
@@ -360,9 +532,11 @@ define(function () {
       }
       Game.prototype.gameOverMenu = function () {
         this.highScoreDisplay.style.visibility = "hidden";
-        this.boardScore.style.visibility = "visible";
         this.boardScore.innerText = this.score;
+        this.boardScore.style.visibility = "visible";    
         this.scoreBoard.style.visibility = "visible";
+        this.rankingBtn.style.visibility = "visible";
+        this.exitBtn.style.visibility = "visible";
       }
       Game.prototype.pauseGame = function () {
         console.log("paused pressed");
@@ -372,7 +546,12 @@ define(function () {
           this.pauseBtn.style.visibility = "visible";
           this.pauseBoard.style.visibility = "hidden";
           this.scoreDisplay.style.visibility = "visible";
-          this.boardScore.style.visibility = "hidden"
+          this.boardScore.style.visibility = "hidden";
+          this.rankingBtn.style.visibility = "hidden";
+          this.exitBtn.style.visibility = "hidden";
+          this.scoreTop1.style.visibility = "hidden";
+          this.scoreTop2.style.visibility = "hidden";
+          this.scoreTop3.style.visibility = "hidden";
           // requestAnimationFrame(animate);
         } else {
           this.pause = true;
@@ -380,9 +559,71 @@ define(function () {
           this.pauseBtn.style.visibility = "hidden";
           this.scoreDisplay.style.visibility = "hidden";
           this.boardScore.innerText = this.score;
-          this.boardScore.style.visibility = "visible"
+          this.scoreTop1.style.visibility = "hidden";
+          this.scoreTop2.style.visibility = "hidden";
+          this.scoreTop3.style.visibility = "hidden";
+          this.boardScore.style.visibility = "visible";
+          this.rankingBtn.style.visibility = "visible";
+          this.exitBtn.style.visibility = "visible";
         }
         console.log(this.pause);   
+      }
+      Game.prototype.showRanking = function () {
+
+        console.log(self.top1Name + ": " + self.top1Score);
+        console.log(self.top2Name + ": " + self.top2Score);
+        console.log(self.top3Name + ": " + self.top3Score);
+
+        this.scoreTop1.innerText = self.top1Name + ": " + self.top1Score;
+        this.scoreTop2.innerText = self.top2Name + ": " + self.top2Score;
+        this.scoreTop3.innerText = self.top3Name + ": " + self.top3Score;
+
+        if (!this.showRank){
+          this.showRank = true;
+          this.scoreTop1.style.visibility = "visible";
+          this.scoreTop2.style.visibility = "visible";
+          this.scoreTop3.style.visibility = "visible";
+          this.boardScore.style.visibility = "hidden";
+        } else {
+          this.showRank = false;
+          this.scoreTop1.style.visibility = "hidden";
+          this.scoreTop2.style.visibility = "hidden";
+          this.scoreTop3.style.visibility = "hidden";
+          this.boardScore.style.visibility = "visible";
+        }
+
+      }
+      Game.prototype.getScore = function (name) {
+
+        var formQuery = {};
+
+        $flare.http.get('<% .Helpers.UrlForRoute "score.get" %>', formQuery)
+          .then(function (response) {
+            console.log(response);
+            console.log(response[0].score);
+            console.log("TOP: " + response[0].name);
+            self.data = response;
+            console.log(self.data);
+            self.highScore = response[0].score;
+            self.top1Name = response[0].name;
+            self.top1Score = response[0].score;
+            self.top2Name = response[1].name;
+            self.top2Score = response[1].score;
+            self.top3Name = response[2].name;
+            self.top3Score = response[2].score;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }
+      Game.prototype.isHighScore = function() {
+        if (this.score >= self.top3Score) {
+          console.log("Game Over: HighScore");
+          return true;
+        } else {
+          console.log("Game Over: Not HighScore");
+          return false;
+        }
       }
 
       function Player(game) {
